@@ -136,3 +136,181 @@ impl AstMatcher {
         &self.queries
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::lang::{Python, Rust, TypeScript};
+
+    #[test]
+    fn test_find_rust_functions() {
+        let source = r#"
+fn hello() {}
+fn world() {}
+pub fn greet(name: &str) {}
+"#;
+        let matcher = AstMatcher::new()
+            .query("(function_item name: (identifier) @fn_name)");
+
+        let matches = matcher.find_matches(source, &Rust).unwrap();
+
+        assert_eq!(matches.len(), 3);
+        let names: Vec<&str> = matches.iter().map(|m| m.text.as_str()).collect();
+        assert!(names.contains(&"hello"));
+        assert!(names.contains(&"world"));
+        assert!(names.contains(&"greet"));
+    }
+
+    #[test]
+    fn test_find_rust_structs() {
+        let source = r#"
+struct Point { x: i32, y: i32 }
+struct Circle { center: Point, radius: f64 }
+"#;
+        let matcher = AstMatcher::new()
+            .query("(struct_item name: (type_identifier) @struct_name)");
+
+        let matches = matcher.find_matches(source, &Rust).unwrap();
+
+        assert_eq!(matches.len(), 2);
+        let names: Vec<&str> = matches.iter().map(|m| m.text.as_str()).collect();
+        assert!(names.contains(&"Point"));
+        assert!(names.contains(&"Circle"));
+    }
+
+    #[test]
+    fn test_find_typescript_functions() {
+        let source = r#"
+function hello() { }
+function world(): void { }
+"#;
+        let matcher = AstMatcher::new()
+            .query("(function_declaration name: (identifier) @fn_name)");
+
+        let matches = matcher.find_matches(source, &TypeScript).unwrap();
+
+        assert_eq!(matches.len(), 2);
+        let names: Vec<&str> = matches.iter().map(|m| m.text.as_str()).collect();
+        assert!(names.contains(&"hello"));
+        assert!(names.contains(&"world"));
+    }
+
+    #[test]
+    fn test_find_python_functions() {
+        let source = r#"
+def hello():
+    pass
+
+def world(x):
+    return x * 2
+"#;
+        let matcher = AstMatcher::new()
+            .query("(function_definition name: (identifier) @fn_name)");
+
+        let matches = matcher.find_matches(source, &Python).unwrap();
+
+        assert_eq!(matches.len(), 2);
+        let names: Vec<&str> = matches.iter().map(|m| m.text.as_str()).collect();
+        assert!(names.contains(&"hello"));
+        assert!(names.contains(&"world"));
+    }
+
+    #[test]
+    fn test_capture_filtering() {
+        let source = r#"
+fn process(data: Vec<u8>) -> Result<String> {
+    let x = 42;
+    Ok(format!("{}", x))
+}
+"#;
+        // Query captures both function name and parameter name
+        let matcher = AstMatcher::new()
+            .query("(function_item name: (identifier) @fn_name)")
+            .query("(parameter pattern: (identifier) @param)")
+            .capture("fn_name");
+
+        let matches = matcher.find_matches(source, &Rust).unwrap();
+
+        // Should only have the function name, not the parameter
+        assert_eq!(matches.len(), 1);
+        assert_eq!(matches[0].text, "process");
+        assert_eq!(matches[0].capture_name, "fn_name");
+    }
+
+    #[test]
+    fn test_match_positions() {
+        let source = "fn test() {}";
+        let matcher = AstMatcher::new()
+            .query("(function_item name: (identifier) @fn_name)");
+
+        let matches = matcher.find_matches(source, &Rust).unwrap();
+
+        assert_eq!(matches.len(), 1);
+        let m = &matches[0];
+        assert_eq!(m.text, "test");
+        assert_eq!(m.start_row, 0);
+        assert_eq!(m.start_col, 3);
+        assert_eq!(m.start_byte, 3);
+        assert_eq!(m.end_byte, 7);
+    }
+
+    #[test]
+    fn test_has_matches() {
+        let source = "fn hello() {}";
+        let matcher = AstMatcher::new()
+            .query("(function_item name: (identifier) @fn)");
+
+        assert!(matcher.has_matches(source, &Rust).unwrap());
+
+        let no_fn_source = "let x = 42;";
+        assert!(!matcher.has_matches(no_fn_source, &Rust).unwrap());
+    }
+
+    #[test]
+    fn test_multiple_queries() {
+        let source = r#"
+fn hello() {}
+struct Point { x: i32 }
+"#;
+        let matcher = AstMatcher::new()
+            .query("(function_item name: (identifier) @fn)")
+            .query("(struct_item name: (type_identifier) @struct)");
+
+        let matches = matcher.find_matches(source, &Rust).unwrap();
+
+        assert_eq!(matches.len(), 2);
+        let names: Vec<&str> = matches.iter().map(|m| m.text.as_str()).collect();
+        assert!(names.contains(&"hello"));
+        assert!(names.contains(&"Point"));
+    }
+
+    #[test]
+    fn test_no_matches() {
+        let source = "let x = 42;";
+        let matcher = AstMatcher::new()
+            .query("(function_item name: (identifier) @fn)");
+
+        let matches = matcher.find_matches(source, &Rust).unwrap();
+        assert!(matches.is_empty());
+    }
+
+    #[test]
+    fn test_empty_source() {
+        let source = "";
+        let matcher = AstMatcher::new()
+            .query("(function_item name: (identifier) @fn)");
+
+        let matches = matcher.find_matches(source, &Rust).unwrap();
+        assert!(matches.is_empty());
+    }
+
+    #[test]
+    fn test_queries_getter() {
+        let matcher = AstMatcher::new()
+            .query("(function_item @fn)")
+            .query("(struct_item @struct)");
+
+        let queries = matcher.queries();
+        assert_eq!(queries.len(), 2);
+    }
+}

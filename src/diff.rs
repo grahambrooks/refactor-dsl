@@ -115,3 +115,160 @@ pub fn colorized_diff(original: &str, modified: &str, path: &Path) -> String {
 
     output
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_unified_diff_simple() {
+        let original = "line1\nline2\nline3\n";
+        let modified = "line1\nmodified\nline3\n";
+        let path = Path::new("test.txt");
+
+        let diff = unified_diff(original, modified, path);
+
+        assert!(diff.contains("--- a/test.txt"));
+        assert!(diff.contains("+++ b/test.txt"));
+        assert!(diff.contains("-line2"));
+        assert!(diff.contains("+modified"));
+    }
+
+    #[test]
+    fn test_unified_diff_addition() {
+        let original = "line1\nline2\n";
+        let modified = "line1\nline2\nline3\n";
+        let path = Path::new("test.txt");
+
+        let diff = unified_diff(original, modified, path);
+
+        assert!(diff.contains("+line3"));
+    }
+
+    #[test]
+    fn test_unified_diff_deletion() {
+        let original = "line1\nline2\nline3\n";
+        let modified = "line1\nline3\n";
+        let path = Path::new("test.txt");
+
+        let diff = unified_diff(original, modified, path);
+
+        assert!(diff.contains("-line2"));
+    }
+
+    #[test]
+    fn test_unified_diff_no_change() {
+        let original = "line1\nline2\n";
+        let modified = "line1\nline2\n";
+        let path = Path::new("test.txt");
+
+        let diff = unified_diff(original, modified, path);
+
+        // Should only have headers, no changes
+        assert!(diff.contains("--- a/test.txt"));
+        assert!(!diff.contains("-line"));
+        assert!(!diff.contains("+line"));
+    }
+
+    #[test]
+    fn test_diff_summary_changes() {
+        let original = "line1\nline2\nline3\n";
+        let modified = "line1\nmodified\nline3\nnew_line\n";
+
+        let summary = DiffSummary::from_diff(original, modified);
+
+        assert_eq!(summary.files_changed, 1);
+        assert_eq!(summary.deletions, 1); // line2 deleted
+        assert_eq!(summary.insertions, 2); // modified + new_line
+    }
+
+    #[test]
+    fn test_diff_summary_no_changes() {
+        let original = "line1\nline2\n";
+        let modified = "line1\nline2\n";
+
+        let summary = DiffSummary::from_diff(original, modified);
+
+        assert_eq!(summary.files_changed, 0);
+        assert_eq!(summary.insertions, 0);
+        assert_eq!(summary.deletions, 0);
+    }
+
+    #[test]
+    fn test_diff_summary_merge() {
+        let mut summary1 = DiffSummary {
+            files_changed: 1,
+            insertions: 5,
+            deletions: 3,
+        };
+        let summary2 = DiffSummary {
+            files_changed: 2,
+            insertions: 10,
+            deletions: 2,
+        };
+
+        summary1.merge(&summary2);
+
+        assert_eq!(summary1.files_changed, 3);
+        assert_eq!(summary1.insertions, 15);
+        assert_eq!(summary1.deletions, 5);
+    }
+
+    #[test]
+    fn test_diff_summary_display() {
+        let summary = DiffSummary {
+            files_changed: 3,
+            insertions: 10,
+            deletions: 5,
+        };
+
+        let display = format!("{}", summary);
+
+        assert!(display.contains("3 file(s) changed"));
+        assert!(display.contains("10 insertions(+)"));
+        assert!(display.contains("5 deletions(-)"));
+    }
+
+    #[test]
+    fn test_colorized_diff_contains_colors() {
+        let original = "line1\nold\n";
+        let modified = "line1\nnew\n";
+        let path = Path::new("test.txt");
+
+        let diff = colorized_diff(original, modified, path);
+
+        // Check for ANSI color codes
+        assert!(diff.contains("\x1b[31m")); // RED for deletions
+        assert!(diff.contains("\x1b[32m")); // GREEN for insertions
+        assert!(diff.contains("\x1b[36m")); // CYAN for headers
+        assert!(diff.contains("\x1b[0m"));  // RESET
+    }
+
+    #[test]
+    fn test_diff_empty_original() {
+        let original = "";
+        let modified = "new content\n";
+        let path = Path::new("test.txt");
+
+        let diff = unified_diff(original, modified, path);
+        let summary = DiffSummary::from_diff(original, modified);
+
+        assert!(diff.contains("+new content"));
+        assert_eq!(summary.insertions, 1);
+        assert_eq!(summary.deletions, 0);
+    }
+
+    #[test]
+    fn test_diff_empty_modified() {
+        let original = "old content\n";
+        let modified = "";
+        let path = Path::new("test.txt");
+
+        let diff = unified_diff(original, modified, path);
+        let summary = DiffSummary::from_diff(original, modified);
+
+        assert!(diff.contains("-old content"));
+        assert_eq!(summary.insertions, 0);
+        assert_eq!(summary.deletions, 1);
+    }
+}

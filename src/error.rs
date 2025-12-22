@@ -18,6 +18,9 @@ pub enum RefactorError {
     #[error("Glob pattern error: {0}")]
     Glob(#[from] globset::Error),
 
+    #[error("JSON error: {0}")]
+    Json(#[from] serde_json::Error),
+
     #[error("Tree-sitter parse error for {path}: {message}")]
     Parse { path: PathBuf, message: String },
 

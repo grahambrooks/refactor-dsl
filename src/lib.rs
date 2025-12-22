@@ -70,10 +70,27 @@
 //! - Rust (`.rs`)
 //! - TypeScript/JavaScript (`.ts`, `.tsx`, `.js`, `.jsx`)
 //! - Python (`.py`, `.pyi`)
+//!
+//! ## LSP-based Refactoring
+//!
+//! For semantic refactoring (rename, find references), use the LSP module:
+//!
+//! ```rust,no_run
+//! use refactor_dsl::lsp::{LspRename, LspRegistry};
+//!
+//! // Rename a symbol using LSP
+//! let result = LspRename::new("src/main.rs", 5, 4, "new_function_name")
+//!     .dry_run()
+//!     .execute()?;
+//!
+//! println!("Would modify {} files", result.file_count());
+//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! ```
 
 pub mod diff;
 pub mod error;
 pub mod lang;
+pub mod lsp;
 pub mod matcher;
 pub mod refactor;
 pub mod transform;
@@ -82,6 +99,7 @@ pub mod transform;
 pub mod prelude {
     pub use crate::error::{RefactorError, Result};
     pub use crate::lang::{Language, LanguageRegistry, Python, Rust, TypeScript};
+    pub use crate::lsp::{LspClient, LspInstaller, LspRegistry, LspRename, LspServerConfig};
     pub use crate::matcher::{AstMatcher, FileMatcher, GitMatcher, Matcher};
     pub use crate::refactor::{MultiRepoRefactor, Refactor, RefactorResult};
     pub use crate::transform::{

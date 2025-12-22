@@ -165,3 +165,168 @@ impl FileMatcher {
         patterns.iter().map(|p| Ok(Regex::new(p)?)).collect()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use std::io::Write;
+    use tempfile::TempDir;
+
+    fn create_test_files(dir: &Path) {
+        // Create some test files
+        fs::create_dir_all(dir.join("src")).unwrap();
+        fs::create_dir_all(dir.join("tests")).unwrap();
+
+        File::create(dir.join("src/main.rs"))
+            .unwrap()
+            .write_all(b"fn main() { println!(\"hello\"); }")
+            .unwrap();
+
+        File::create(dir.join("src/lib.rs"))
+            .unwrap()
+            .write_all(b"pub fn add(a: i32, b: i32) -> i32 { a + b }")
+            .unwrap();
+
+        File::create(dir.join("src/utils.ts"))
+            .unwrap()
+            .write_all(b"export function util() { return 42; }")
+            .unwrap();
+
+        File::create(dir.join("tests/test_main.rs"))
+            .unwrap()
+            .write_all(b"#[test] fn it_works() { assert!(true); }")
+            .unwrap();
+
+        File::create(dir.join("README.md"))
+            .unwrap()
+            .write_all(b"# Test Project\n\nTODO: add docs")
+            .unwrap();
+    }
+
+    #[test]
+    fn test_filter_by_extension() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        let matcher = FileMatcher::new().extension("rs");
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert_eq!(files.len(), 3);
+        assert!(files.iter().all(|f| f.extension().unwrap() == "rs"));
+    }
+
+    #[test]
+    fn test_filter_by_multiple_extensions() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        let matcher = FileMatcher::new().extensions(["rs", "ts"]);
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert_eq!(files.len(), 4);
+    }
+
+    #[test]
+    fn test_exclude_glob() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        let matcher = FileMatcher::new()
+            .extension("rs")
+            .exclude("**/tests/**");
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert_eq!(files.len(), 2);
+        assert!(files.iter().all(|f| !f.to_string_lossy().contains("tests")));
+    }
+
+    #[test]
+    fn test_include_glob() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        let matcher = FileMatcher::new().include("**/src/**");
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert_eq!(files.len(), 3);
+        assert!(files.iter().all(|f| f.to_string_lossy().contains("src")));
+    }
+
+    #[test]
+    fn test_content_pattern() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        let matcher = FileMatcher::new().contains_pattern("TODO");
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert_eq!(files.len(), 1);
+        assert!(files[0].to_string_lossy().contains("README"));
+    }
+
+    #[test]
+    fn test_name_pattern() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        let matcher = FileMatcher::new().name_matches(r"^main\.");
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert_eq!(files.len(), 1);
+        assert!(files[0].file_name().unwrap().to_string_lossy().starts_with("main"));
+    }
+
+    #[test]
+    fn test_combined_filters() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        let matcher = FileMatcher::new()
+            .extension("rs")
+            .exclude("**/tests/**")
+            .contains_pattern("fn main");
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert_eq!(files.len(), 1);
+        assert!(files[0].to_string_lossy().contains("main.rs"));
+    }
+
+    #[test]
+    fn test_empty_directory() {
+        let dir = TempDir::new().unwrap();
+
+        let matcher = FileMatcher::new();
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn test_max_size() {
+        let dir = TempDir::new().unwrap();
+        create_test_files(dir.path());
+
+        // All test files are small, so max_size of 10 should exclude most
+        let matcher = FileMatcher::new().max_size(10);
+        let files = matcher.collect(dir.path()).unwrap();
+
+        assert!(files.is_empty());
+    }
+
+    #[test]
+    fn test_builder_pattern() {
+        let matcher = FileMatcher::new()
+            .extension("rs")
+            .extension("ts")
+            .include("**/src/**")
+            .exclude("**/node_modules/**")
+            .contains_pattern("function")
+            .name_matches(r"\.rs$")
+            .min_size(1)
+            .max_size(1000000);
+
+        // Just verify it builds without panic
+        assert!(true);
+    }
+}

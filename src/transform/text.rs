@@ -196,3 +196,153 @@ impl Transform for TextTransform {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn dummy_path() -> &'static Path {
+        Path::new("test.rs")
+    }
+
+    #[test]
+    fn test_replace_pattern() {
+        let transform = TextTransform::replace(r"\.unwrap\(\)", ".expect(\"error\")");
+        let source = "let x = foo().unwrap();";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, "let x = foo().expect(\"error\");");
+    }
+
+    #[test]
+    fn test_replace_pattern_multiple() {
+        let transform = TextTransform::replace(r"old", "new");
+        let source = "old_func old_var old_type";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, "new_func new_var new_type");
+    }
+
+    #[test]
+    fn test_replace_pattern_with_groups() {
+        let transform = TextTransform::replace(r"fn (\w+)", "pub fn $1");
+        let source = "fn hello() {}";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, "pub fn hello() {}");
+    }
+
+    #[test]
+    fn test_replace_literal() {
+        let transform = TextTransform::replace_literal("old_name", "new_name");
+        let source = "use old_name::module;";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, "use new_name::module;");
+    }
+
+    #[test]
+    fn test_replace_literal_no_regex() {
+        // Literal replacement should not interpret regex special chars
+        let transform = TextTransform::replace_literal(".*", "STAR");
+        let source = "match .* pattern";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, "match STAR pattern");
+    }
+
+    #[test]
+    fn test_prepend_line() {
+        let transform = TextTransform::prepend_line(r"^\s*fn ", "// TODO: document\n").unwrap();
+        let source = "fn hello() {}\nlet x = 1;\nfn world() {}";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert!(result.contains("// TODO: document\nfn hello"));
+        assert!(result.contains("// TODO: document\nfn world"));
+        assert!(!result.contains("// TODO: document\nlet"));
+    }
+
+    #[test]
+    fn test_append_line() {
+        let transform = TextTransform::append_line(r";\s*$", " // added").unwrap();
+        let source = "let x = 1;\nfn foo() {}\nlet y = 2;";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert!(result.contains("let x = 1; // added"));
+        assert!(result.contains("let y = 2; // added"));
+        assert!(!result.contains("fn foo() {} // added"));
+    }
+
+    #[test]
+    fn test_delete_lines() {
+        let transform = TextTransform::delete_lines(r"^\s*//").unwrap();
+        let source = "// comment\nlet x = 1;\n// another comment\nlet y = 2;";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert!(!result.contains("// comment"));
+        assert!(result.contains("let x = 1;"));
+        assert!(result.contains("let y = 2;"));
+    }
+
+    #[test]
+    fn test_insert_after() {
+        let transform = TextTransform::insert_after(r"^use ", "// imported").unwrap();
+        let source = "use std::io;\nuse std::fs;\nfn main() {}";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        let lines: Vec<&str> = result.lines().collect();
+        assert_eq!(lines[0], "use std::io;");
+        assert_eq!(lines[1], "// imported");
+        assert_eq!(lines[2], "use std::fs;");
+        assert_eq!(lines[3], "// imported");
+    }
+
+    #[test]
+    fn test_insert_before() {
+        let transform = TextTransform::insert_before(r"^fn ", "#[inline]").unwrap();
+        let source = "fn hello() {}\nlet x = 1;\nfn world() {}";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        let lines: Vec<&str> = result.lines().collect();
+        assert_eq!(lines[0], "#[inline]");
+        assert_eq!(lines[1], "fn hello() {}");
+    }
+
+    #[test]
+    fn test_no_match() {
+        let transform = TextTransform::replace(r"xyz", "abc");
+        let source = "hello world";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, source);
+    }
+
+    #[test]
+    fn test_empty_source() {
+        let transform = TextTransform::replace(r"foo", "bar");
+        let source = "";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, "");
+    }
+
+    #[test]
+    fn test_describe_replace() {
+        let transform = TextTransform::replace(r"old", "new");
+        let desc = transform.describe();
+        assert!(desc.contains("old"));
+        assert!(desc.contains("new"));
+    }
+
+    #[test]
+    fn test_describe_literal() {
+        let transform = TextTransform::replace_literal("old", "new");
+        let desc = transform.describe();
+        assert!(desc.contains("literal"));
+    }
+
+    #[test]
+    fn test_describe_delete() {
+        let transform = TextTransform::delete_lines(r"comment").unwrap();
+        let desc = transform.describe();
+        assert!(desc.contains("Delete"));
+        assert!(desc.contains("comment"));
+    }
+
+    #[test]
+    fn test_replace_regex_precompiled() {
+        let pattern = Regex::new(r"\d+").unwrap();
+        let transform = TextTransform::replace_regex(pattern, "NUM");
+        let source = "x = 42, y = 123";
+        let result = transform.apply(source, dummy_path()).unwrap();
+        assert_eq!(result, "x = NUM, y = NUM");
+    }
+}
