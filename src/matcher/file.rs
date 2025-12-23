@@ -328,6 +328,5 @@ mod tests {
             .max_size(1000000);
 
         // Just verify it builds without panic
-        assert!(true);
     }
 }
