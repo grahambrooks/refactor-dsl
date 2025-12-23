@@ -336,21 +336,21 @@ impl LspClient {
             let response: Value = serde_json::from_slice(&content)?;
 
             // Check if this is the response we're waiting for
-            if let Some(id) = response.get("id").and_then(|v| v.as_i64()) {
-                if id == expected_id {
-                    if let Some(error) = response.get("error") {
-                        return Err(RefactorError::TransformFailed {
-                            message: format!("LSP error: {}", error),
-                        });
-                    }
-
-                    let result = response.get("result").cloned().unwrap_or(Value::Null);
-                    return serde_json::from_value(result).map_err(|e| {
-                        RefactorError::TransformFailed {
-                            message: format!("Failed to parse LSP response: {}", e),
-                        }
+            if let Some(id) = response.get("id").and_then(|v| v.as_i64())
+                && id == expected_id
+            {
+                if let Some(error) = response.get("error") {
+                    return Err(RefactorError::TransformFailed {
+                        message: format!("LSP error: {}", error),
                     });
                 }
+
+                let result = response.get("result").cloned().unwrap_or(Value::Null);
+                return serde_json::from_value(result).map_err(|e| {
+                    RefactorError::TransformFailed {
+                        message: format!("Failed to parse LSP response: {}", e),
+                    }
+                });
             }
 
             // Skip notifications and other messages
@@ -402,31 +402,28 @@ impl LspClient {
             };
 
             for change in operations {
-                match change {
-                    lsp_types::DocumentChangeOperation::Edit(text_doc_edit) => {
-                        let path =
-                            text_doc_edit
-                                .text_document
-                                .uri
-                                .to_file_path()
-                                .map_err(|_| RefactorError::TransformFailed {
-                                    message: "Invalid URI in document edit".to_string(),
-                                })?;
+                // Skip create/rename/delete operations for now
+                if let lsp_types::DocumentChangeOperation::Edit(text_doc_edit) = change {
+                    let path = text_doc_edit
+                        .text_document
+                        .uri
+                        .to_file_path()
+                        .map_err(|_| RefactorError::TransformFailed {
+                            message: "Invalid URI in document edit".to_string(),
+                        })?;
 
-                        let text_edits: Vec<TextEdit> = text_doc_edit
-                            .edits
-                            .iter()
-                            .map(|e| match e {
-                                lsp_types::OneOf::Left(edit) => TextEdit::from_lsp(edit),
-                                lsp_types::OneOf::Right(annotated) => {
-                                    TextEdit::from_lsp(&annotated.text_edit)
-                                }
-                            })
-                            .collect();
+                    let text_edits: Vec<TextEdit> = text_doc_edit
+                        .edits
+                        .iter()
+                        .map(|e| match e {
+                            lsp_types::OneOf::Left(edit) => TextEdit::from_lsp(edit),
+                            lsp_types::OneOf::Right(annotated) => {
+                                TextEdit::from_lsp(&annotated.text_edit)
+                            }
+                        })
+                        .collect();
 
-                        result.add_edits(path, text_edits);
-                    }
-                    _ => {} // Skip create/rename/delete operations for now
+                    result.add_edits(path, text_edits);
                 }
             }
         }

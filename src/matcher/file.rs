@@ -121,15 +121,15 @@ impl FileMatcher {
             // Check file size
             if let Ok(metadata) = fs::metadata(path) {
                 let size = metadata.len();
-                if let Some(min) = self.min_size {
-                    if size < min {
-                        continue;
-                    }
+                if let Some(min) = self.min_size
+                    && size < min
+                {
+                    continue;
                 }
-                if let Some(max) = self.max_size {
-                    if size > max {
-                        continue;
-                    }
+                if let Some(max) = self.max_size
+                    && size > max
+                {
+                    continue;
                 }
             }
 
@@ -317,7 +317,7 @@ mod tests {
 
     #[test]
     fn test_builder_pattern() {
-        let matcher = FileMatcher::new()
+        let _matcher = FileMatcher::new()
             .extension("rs")
             .extension("ts")
             .include("**/src/**")

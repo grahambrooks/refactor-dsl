@@ -119,11 +119,11 @@ impl LspInstaller {
         fs::create_dir_all(&server_dir)?;
 
         // Download and extract
-        let download_url = package.get_download_url(&asset)?;
+        let download_url = package.get_download_url(asset)?;
         let archive_path = self.download_file(&download_url, server_name, &asset.file)?;
 
         // Extract based on file type
-        let bin_name = self.extract_archive(&archive_path, &server_dir, &asset)?;
+        let bin_name = self.extract_archive(&archive_path, &server_dir, asset)?;
 
         // Make executable on Unix
         #[cfg(unix)]
@@ -366,28 +366,27 @@ impl LspInstaller {
             let entry = entry?;
             if entry.file_type()?.is_dir() {
                 let info_path = entry.path().join("info.json");
-                if info_path.exists() {
-                    if let Ok(info_str) = fs::read_to_string(&info_path) {
-                        if let Ok(info) = serde_json::from_str::<serde_json::Value>(&info_str) {
-                            servers.push(InstalledServer {
-                                name: info
-                                    .get("name")
-                                    .and_then(|v| v.as_str())
-                                    .unwrap_or("unknown")
-                                    .to_string(),
-                                version: info
-                                    .get("version")
-                                    .and_then(|v| v.as_str())
-                                    .unwrap_or("unknown")
-                                    .to_string(),
-                                binary: entry.path().join(
-                                    info.get("binary")
-                                        .and_then(|v| v.as_str())
-                                        .unwrap_or("server"),
-                                ),
-                            });
-                        }
-                    }
+                if info_path.exists()
+                    && let Ok(info_str) = fs::read_to_string(&info_path)
+                    && let Ok(info) = serde_json::from_str::<serde_json::Value>(&info_str)
+                {
+                    servers.push(InstalledServer {
+                        name: info
+                            .get("name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("unknown")
+                            .to_string(),
+                        version: info
+                            .get("version")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("unknown")
+                            .to_string(),
+                        binary: entry.path().join(
+                            info.get("binary")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("server"),
+                        ),
+                    });
                 }
             }
         }

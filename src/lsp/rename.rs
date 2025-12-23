@@ -184,7 +184,7 @@ impl LspRename {
         let package_name = Self::map_server_to_package(&config.name);
 
         eprintln!("Installing {} from Mason registry...", package_name);
-        let binary_path = installer.install(&package_name)?;
+        let binary_path = installer.install(package_name)?;
         eprintln!("Installed {} at {}", package_name, binary_path.display());
 
         // Create new config with installed binary path

@@ -69,10 +69,10 @@ impl GitMatcher {
             .map_err(|_| RefactorError::RepoNotFound(repo_path.to_path_buf()))?;
 
         // Check branch
-        if let Some(ref expected_branch) = self.branch {
-            if !self.check_branch(&repo, expected_branch)? {
-                return Ok(false);
-            }
+        if let Some(ref expected_branch) = self.branch
+            && !self.check_branch(&repo, expected_branch)?
+        {
+            return Ok(false);
         }
 
         // Check required files
@@ -90,10 +90,10 @@ impl GitMatcher {
         }
 
         // Check commit recency
-        if let Some(max_days) = self.max_commit_age_days {
-            if !self.check_recent_commits(&repo, max_days)? {
-                return Ok(false);
-            }
+        if let Some(max_days) = self.max_commit_age_days
+            && !self.check_recent_commits(&repo, max_days)?
+        {
+            return Ok(false);
         }
 
         // Check clean/dirty state
@@ -117,10 +117,10 @@ impl GitMatcher {
 
     fn check_branch(&self, repo: &Repository, expected: &str) -> Result<bool> {
         let head = repo.head()?;
-        if head.is_branch() {
-            if let Some(name) = head.shorthand() {
-                return Ok(name == expected);
-            }
+        if head.is_branch()
+            && let Some(name) = head.shorthand()
+        {
+            return Ok(name == expected);
         }
         Ok(false)
     }

@@ -70,13 +70,11 @@ impl Package {
         }
 
         // Try more flexible matching
-        for asset in &self.source.asset {
-            if self.asset_matches_platform(&asset.target, platform) {
-                return Some(asset);
-            }
-        }
-
-        None
+        self.source
+            .asset
+            .iter()
+            .find(|&asset| self.asset_matches_platform(&asset.target, platform))
+            .map(|v| v as _)
     }
 
     /// Checks if an asset target matches the platform.
