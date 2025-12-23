@@ -1,0 +1,31 @@
+[book]
+title = "Refactor DSL"
+authors = ["Graham Brooks"]
+language = "en"
+src = "src"
+description = "A domain-specific language for multi-language code refactoring with Git-aware matching"
+
+[build]
+build-dir = "book"
+
+[output.html]
+git-repository-url = "https://github.com/yourusername/refactor-dsl"
+edit-url-template = "https://github.com/yourusername/refactor-dsl/edit/main/docs/{path}"
+site-url = "/refactor-dsl/"
+default-theme = "rust"
+preferred-dark-theme = "coal"
+smart-punctuation = true
+
+[output.html.fold]
+enable = true
+level = 1
+
+[output.html.search]
+enable = true
+limit-results = 20
+boost-title = 2
+boost-hierarchy = 1
+expand = true
+
+[output.html.code.hidelines]
+rust = "#"
