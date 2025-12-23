@@ -14,7 +14,7 @@ Thank you for your interest in contributing to Refactor DSL! This document provi
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/refactor-dsl.git
+   git clone https://github.com/grahambrooks/refactor-dsl.git
    cd refactor-dsl
    ```
 3. Build the project:

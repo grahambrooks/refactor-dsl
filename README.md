@@ -1,7 +1,7 @@
 # Refactor DSL
 
-[![Build Status](https://github.com/YOUR_USERNAME/refactor-dsl/workflows/CI/badge.svg)](https://github.com/YOUR_USERNAME/refactor-dsl/actions)
-[![Documentation](https://img.shields.io/badge/docs-mdbook-blue)](https://YOUR_USERNAME.github.io/refactor-dsl/)
+[![Build Status](https://github.com/grahambrooks/refactor-dsl/workflows/CI/badge.svg)](https://github.com/grahambrooks/refactor-dsl/actions)
+[![Documentation](https://img.shields.io/badge/docs-mdbook-blue)](https://grahambrooks.github.io/refactor-dsl/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Crates.io](https://img.shields.io/crates/v/refactor-dsl.svg)](https://crates.io/crates/refactor-dsl)
 
@@ -47,29 +47,29 @@ cargo install refactor-dsl
 
 ## Documentation
 
-- [**Getting Started Guide**](https://YOUR_USERNAME.github.io/refactor-dsl/getting-started.html) - Installation and first steps
-- [**User Guide**](https://YOUR_USERNAME.github.io/refactor-dsl/) - Full documentation
+- [**Getting Started Guide**](https://grahambrooks.github.io/refactor-dsl/getting-started.html) - Installation and first steps
+- [**User Guide**](https://grahambrooks.github.io/refactor-dsl/) - Full documentation
 
 ### Core Concepts
 
 | Topic | Description |
 |-------|-------------|
-| [Matchers](https://YOUR_USERNAME.github.io/refactor-dsl/matchers/) | File, Git, and AST matching |
-| [Transforms](https://YOUR_USERNAME.github.io/refactor-dsl/transforms/) | Text and AST transformations |
-| [Languages](https://YOUR_USERNAME.github.io/refactor-dsl/languages.html) | Supported programming languages |
+| [Matchers](https://grahambrooks.github.io/refactor-dsl/matchers/) | File, Git, and AST matching |
+| [Transforms](https://grahambrooks.github.io/refactor-dsl/transforms/) | Text and AST transformations |
+| [Languages](https://grahambrooks.github.io/refactor-dsl/languages.html) | Supported programming languages |
 
 ### Advanced Topics
 
 | Topic | Description |
 |-------|-------------|
-| [LSP Integration](https://YOUR_USERNAME.github.io/refactor-dsl/lsp/) | Semantic refactoring with LSP |
-| [Multi-Repository](https://YOUR_USERNAME.github.io/refactor-dsl/multi-repo.html) | Working across multiple repos |
-| [Tree-sitter Queries](https://YOUR_USERNAME.github.io/refactor-dsl/tree-sitter-queries.html) | Writing AST patterns |
+| [LSP Integration](https://grahambrooks.github.io/refactor-dsl/lsp/) | Semantic refactoring with LSP |
+| [Multi-Repository](https://grahambrooks.github.io/refactor-dsl/multi-repo.html) | Working across multiple repos |
+| [Tree-sitter Queries](https://grahambrooks.github.io/refactor-dsl/tree-sitter-queries.html) | Writing AST patterns |
 
 ### Reference
 
-- [CLI Reference](https://YOUR_USERNAME.github.io/refactor-dsl/cli.html)
-- [API Reference](https://YOUR_USERNAME.github.io/refactor-dsl/api.html)
+- [CLI Reference](https://grahambrooks.github.io/refactor-dsl/cli.html)
+- [API Reference](https://grahambrooks.github.io/refactor-dsl/api.html)
 
 ## Use Cases
 
