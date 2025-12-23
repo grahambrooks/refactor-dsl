@@ -104,12 +104,16 @@ impl TextTransform {
 impl Transform for TextTransform {
     fn apply(&self, source: &str, _path: &Path) -> Result<String> {
         match &self.kind {
-            TextTransformKind::Replace { pattern, replacement } => {
-                Ok(pattern.replace_all(source, replacement.as_str()).into_owned())
-            }
-            TextTransformKind::ReplaceLiteral { needle, replacement } => {
-                Ok(source.replace(needle, replacement))
-            }
+            TextTransformKind::Replace {
+                pattern,
+                replacement,
+            } => Ok(pattern
+                .replace_all(source, replacement.as_str())
+                .into_owned()),
+            TextTransformKind::ReplaceLiteral {
+                needle,
+                replacement,
+            } => Ok(source.replace(needle, replacement)),
             TextTransformKind::PrependLine { pattern, prefix } => {
                 let lines: Vec<&str> = source.lines().collect();
                 let result: Vec<String> = lines
@@ -172,17 +176,35 @@ impl Transform for TextTransform {
 
     fn describe(&self) -> String {
         match &self.kind {
-            TextTransformKind::Replace { pattern, replacement } => {
-                format!("Replace pattern '{}' with '{}'", pattern.as_str(), replacement)
+            TextTransformKind::Replace {
+                pattern,
+                replacement,
+            } => {
+                format!(
+                    "Replace pattern '{}' with '{}'",
+                    pattern.as_str(),
+                    replacement
+                )
             }
-            TextTransformKind::ReplaceLiteral { needle, replacement } => {
+            TextTransformKind::ReplaceLiteral {
+                needle,
+                replacement,
+            } => {
                 format!("Replace literal '{}' with '{}'", needle, replacement)
             }
             TextTransformKind::PrependLine { pattern, prefix } => {
-                format!("Prepend '{}' to lines matching '{}'", prefix, pattern.as_str())
+                format!(
+                    "Prepend '{}' to lines matching '{}'",
+                    prefix,
+                    pattern.as_str()
+                )
             }
             TextTransformKind::AppendLine { pattern, suffix } => {
-                format!("Append '{}' to lines matching '{}'", suffix, pattern.as_str())
+                format!(
+                    "Append '{}' to lines matching '{}'",
+                    suffix,
+                    pattern.as_str()
+                )
             }
             TextTransformKind::DeleteLines { pattern } => {
                 format!("Delete lines matching '{}'", pattern.as_str())
@@ -191,7 +213,10 @@ impl Transform for TextTransform {
                 format!("Insert content after lines matching '{}'", pattern.as_str())
             }
             TextTransformKind::InsertBefore { pattern, .. } => {
-                format!("Insert content before lines matching '{}'", pattern.as_str())
+                format!(
+                    "Insert content before lines matching '{}'",
+                    pattern.as_str()
+                )
             }
         }
     }

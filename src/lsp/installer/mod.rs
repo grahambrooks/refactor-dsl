@@ -7,7 +7,7 @@ mod package;
 mod platform;
 
 pub use package::{Package, PackageSource, SourceAsset};
-pub use platform::{Platform, Arch, Os};
+pub use platform::{Arch, Os, Platform};
 
 use crate::error::{RefactorError, Result};
 use std::fs::{self, File};
@@ -27,8 +27,9 @@ pub struct LspInstaller {
 impl LspInstaller {
     /// Creates a new installer with default settings.
     pub fn new() -> Result<Self> {
-        let data_dir = dirs::data_local_dir()
-            .ok_or_else(|| RefactorError::InvalidConfig("Cannot determine data directory".into()))?;
+        let data_dir = dirs::data_local_dir().ok_or_else(|| {
+            RefactorError::InvalidConfig("Cannot determine data directory".into())
+        })?;
 
         let install_dir = data_dir.join(DEFAULT_INSTALL_DIR);
         let cache_dir = data_dir.join("refactor-dsl/cache");
@@ -78,9 +79,8 @@ impl LspInstaller {
             return None;
         }
 
-        let info: serde_json::Value = serde_json::from_str(
-            &fs::read_to_string(&info_path).ok()?
-        ).ok()?;
+        let info: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&info_path).ok()?).ok()?;
 
         let bin_name = info.get("binary")?.as_str()?;
         Some(server_dir.join(bin_name))
@@ -89,10 +89,11 @@ impl LspInstaller {
     /// Ensures a server is installed, downloading if necessary.
     pub fn ensure_installed(&self, server_name: &str) -> Result<PathBuf> {
         if self.is_installed(server_name) {
-            return self.get_binary_path(server_name)
-                .ok_or_else(|| RefactorError::TransformFailed {
+            return self.get_binary_path(server_name).ok_or_else(|| {
+                RefactorError::TransformFailed {
                     message: format!("Server {} is installed but binary not found", server_name),
-                });
+                }
+            });
         }
 
         self.install(server_name)
@@ -104,7 +105,8 @@ impl LspInstaller {
         let package = self.fetch_package(server_name)?;
 
         // Get the appropriate asset for this platform
-        let asset = package.get_asset_for_platform(&self.platform)
+        let asset = package
+            .get_asset_for_platform(&self.platform)
             .ok_or_else(|| RefactorError::TransformFailed {
                 message: format!(
                     "No binary available for {} on {:?}/{:?}",
@@ -150,22 +152,31 @@ impl LspInstaller {
 
     /// Fetches package metadata from the registry.
     fn fetch_package(&self, server_name: &str) -> Result<Package> {
-        let url = format!("{}/packages/{}/package.yaml", REGISTRY_BASE_URL, server_name);
+        let url = format!(
+            "{}/packages/{}/package.yaml",
+            REGISTRY_BASE_URL, server_name
+        );
 
-        let response = reqwest::blocking::get(&url)
-            .map_err(|e| RefactorError::TransformFailed {
+        let response =
+            reqwest::blocking::get(&url).map_err(|e| RefactorError::TransformFailed {
                 message: format!("Failed to fetch package {}: {}", server_name, e),
             })?;
 
         if !response.status().is_success() {
             return Err(RefactorError::TransformFailed {
-                message: format!("Package {} not found in registry (status: {})", server_name, response.status()),
+                message: format!(
+                    "Package {} not found in registry (status: {})",
+                    server_name,
+                    response.status()
+                ),
             });
         }
 
-        let yaml_content = response.text().map_err(|e| RefactorError::TransformFailed {
-            message: format!("Failed to read package data: {}", e),
-        })?;
+        let yaml_content = response
+            .text()
+            .map_err(|e| RefactorError::TransformFailed {
+                message: format!("Failed to read package data: {}", e),
+            })?;
 
         serde_yaml::from_str(&yaml_content).map_err(|e| RefactorError::TransformFailed {
             message: format!("Failed to parse package YAML: {}", e),
@@ -183,10 +194,9 @@ impl LspInstaller {
             return Ok(cache_path);
         }
 
-        let response = reqwest::blocking::get(url)
-            .map_err(|e| RefactorError::TransformFailed {
-                message: format!("Failed to download {}: {}", url, e),
-            })?;
+        let response = reqwest::blocking::get(url).map_err(|e| RefactorError::TransformFailed {
+            message: format!("Failed to download {}: {}", url, e),
+        })?;
 
         if !response.status().is_success() {
             return Err(RefactorError::TransformFailed {
@@ -194,9 +204,11 @@ impl LspInstaller {
             });
         }
 
-        let bytes = response.bytes().map_err(|e| RefactorError::TransformFailed {
-            message: format!("Failed to read download: {}", e),
-        })?;
+        let bytes = response
+            .bytes()
+            .map_err(|e| RefactorError::TransformFailed {
+                message: format!("Failed to read download: {}", e),
+            })?;
 
         let mut file = File::create(&cache_path)?;
         file.write_all(&bytes)?;
@@ -205,8 +217,14 @@ impl LspInstaller {
     }
 
     /// Extracts an archive to the target directory.
-    fn extract_archive(&self, archive_path: &Path, target_dir: &Path, asset: &SourceAsset) -> Result<String> {
-        let filename = archive_path.file_name()
+    fn extract_archive(
+        &self,
+        archive_path: &Path,
+        target_dir: &Path,
+        asset: &SourceAsset,
+    ) -> Result<String> {
+        let filename = archive_path
+            .file_name()
             .and_then(|n| n.to_str())
             .unwrap_or("");
 
@@ -221,7 +239,9 @@ impl LspInstaller {
             self.extract_zip(archive_path, target_dir, asset)
         } else {
             // Assume it's a plain binary
-            let bin_name = asset.bin.as_ref()
+            let bin_name = asset
+                .bin
+                .as_ref()
                 .map(|b| b.to_string())
                 .unwrap_or_else(|| filename.to_string());
             fs::copy(archive_path, target_dir.join(&bin_name))?;
@@ -230,16 +250,24 @@ impl LspInstaller {
     }
 
     /// Extracts a gzip-compressed single file.
-    fn extract_gzip(&self, archive_path: &Path, target_dir: &Path, asset: &SourceAsset) -> Result<String> {
+    fn extract_gzip(
+        &self,
+        archive_path: &Path,
+        target_dir: &Path,
+        asset: &SourceAsset,
+    ) -> Result<String> {
         use flate2::read::GzDecoder;
 
         let file = File::open(archive_path)?;
         let mut decoder = GzDecoder::new(file);
 
-        let bin_name = asset.bin.as_ref()
+        let bin_name = asset
+            .bin
+            .as_ref()
             .map(|b| b.to_string())
             .unwrap_or_else(|| {
-                archive_path.file_stem()
+                archive_path
+                    .file_stem()
                     .and_then(|s| s.to_str())
                     .unwrap_or("server")
                     .to_string()
@@ -253,7 +281,12 @@ impl LspInstaller {
     }
 
     /// Extracts a tar.gz archive.
-    fn extract_tar_gz(&self, archive_path: &Path, target_dir: &Path, asset: &SourceAsset) -> Result<String> {
+    fn extract_tar_gz(
+        &self,
+        archive_path: &Path,
+        target_dir: &Path,
+        asset: &SourceAsset,
+    ) -> Result<String> {
         use flate2::read::GzDecoder;
         use tar::Archive;
 
@@ -261,11 +294,15 @@ impl LspInstaller {
         let decoder = GzDecoder::new(file);
         let mut archive = Archive::new(decoder);
 
-        archive.unpack(target_dir).map_err(|e| RefactorError::TransformFailed {
-            message: format!("Failed to extract tar.gz: {}", e),
-        })?;
+        archive
+            .unpack(target_dir)
+            .map_err(|e| RefactorError::TransformFailed {
+                message: format!("Failed to extract tar.gz: {}", e),
+            })?;
 
-        let bin_name = asset.bin.as_ref()
+        let bin_name = asset
+            .bin
+            .as_ref()
             .map(|b| b.to_string())
             .unwrap_or_else(|| "server".to_string());
 
@@ -273,16 +310,24 @@ impl LspInstaller {
     }
 
     /// Extracts a zip archive.
-    fn extract_zip(&self, archive_path: &Path, target_dir: &Path, asset: &SourceAsset) -> Result<String> {
+    fn extract_zip(
+        &self,
+        archive_path: &Path,
+        target_dir: &Path,
+        asset: &SourceAsset,
+    ) -> Result<String> {
         let file = File::open(archive_path)?;
-        let mut archive = zip::ZipArchive::new(file).map_err(|e| RefactorError::TransformFailed {
-            message: format!("Failed to open zip: {}", e),
-        })?;
+        let mut archive =
+            zip::ZipArchive::new(file).map_err(|e| RefactorError::TransformFailed {
+                message: format!("Failed to open zip: {}", e),
+            })?;
 
         for i in 0..archive.len() {
-            let mut file = archive.by_index(i).map_err(|e| RefactorError::TransformFailed {
-                message: format!("Failed to read zip entry: {}", e),
-            })?;
+            let mut file = archive
+                .by_index(i)
+                .map_err(|e| RefactorError::TransformFailed {
+                    message: format!("Failed to read zip entry: {}", e),
+                })?;
 
             let outpath = match file.enclosed_name() {
                 Some(path) => target_dir.join(path),
@@ -300,7 +345,9 @@ impl LspInstaller {
             }
         }
 
-        let bin_name = asset.bin.as_ref()
+        let bin_name = asset
+            .bin
+            .as_ref()
             .map(|b| b.to_string())
             .unwrap_or_else(|| "server".to_string());
 
@@ -323,18 +370,20 @@ impl LspInstaller {
                     if let Ok(info_str) = fs::read_to_string(&info_path) {
                         if let Ok(info) = serde_json::from_str::<serde_json::Value>(&info_str) {
                             servers.push(InstalledServer {
-                                name: info.get("name")
+                                name: info
+                                    .get("name")
                                     .and_then(|v| v.as_str())
                                     .unwrap_or("unknown")
                                     .to_string(),
-                                version: info.get("version")
+                                version: info
+                                    .get("version")
                                     .and_then(|v| v.as_str())
                                     .unwrap_or("unknown")
                                     .to_string(),
                                 binary: entry.path().join(
                                     info.get("binary")
                                         .and_then(|v| v.as_str())
-                                        .unwrap_or("server")
+                                        .unwrap_or("server"),
                                 ),
                             });
                         }
@@ -392,9 +441,7 @@ mod tests {
 
     #[test]
     fn test_custom_install_dir() {
-        let installer = LspInstaller::new()
-            .unwrap()
-            .install_dir("/tmp/test-lsp");
+        let installer = LspInstaller::new().unwrap().install_dir("/tmp/test-lsp");
 
         assert_eq!(installer.get_install_dir(), Path::new("/tmp/test-lsp"));
     }

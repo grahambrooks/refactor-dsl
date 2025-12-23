@@ -10,9 +10,7 @@ fn create_rust_project(dir: &std::path::Path) {
 
     File::create(dir.join("Cargo.toml"))
         .unwrap()
-        .write_all(
-            b"[package]\nname = \"test-project\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
-        )
+        .write_all(b"[package]\nname = \"test-project\"\nversion = \"0.1.0\"\nedition = \"2021\"\n")
         .unwrap();
 
     File::create(dir.join("src/main.rs"))
@@ -90,9 +88,7 @@ fn test_file_matching_with_exclude() {
         .unwrap();
 
     let result = Refactor::in_repo(dir.path())
-        .matching(|m| {
-            m.files(|f| f.extension("rs").exclude("**/tests/**"))
-        })
+        .matching(|m| m.files(|f| f.extension("rs").exclude("**/tests/**")))
         .transform(|t| t.replace_literal("unwrap", "expect"))
         .dry_run()
         .apply()
@@ -113,9 +109,7 @@ fn test_content_pattern_matching() {
     create_rust_project(dir.path());
 
     let result = Refactor::in_repo(dir.path())
-        .matching(|m| {
-            m.files(|f| f.extension("rs").contains_pattern(r"fn main"))
-        })
+        .matching(|m| m.files(|f| f.extension("rs").contains_pattern(r"fn main")))
         .transform(|t| t.replace_literal("println!", "eprintln!"))
         .dry_run()
         .apply()
@@ -175,8 +169,7 @@ fn greet(name: &str) {
 }
 "#;
 
-    let matcher = AstMatcher::new()
-        .query("(function_item name: (identifier) @fn_name)");
+    let matcher = AstMatcher::new().query("(function_item name: (identifier) @fn_name)");
 
     let matches = matcher.find_matches(source, &Rust).unwrap();
 
@@ -213,7 +206,9 @@ fn test_transform_builder() {
         .replace_literal("deprecated", "legacy");
 
     let source = "old_function deprecated_api old_method";
-    let result = transform.apply(source, std::path::Path::new("test.rs")).unwrap();
+    let result = transform
+        .apply(source, std::path::Path::new("test.rs"))
+        .unwrap();
 
     assert!(result.contains("new_function"));
     assert!(result.contains("new_method"));

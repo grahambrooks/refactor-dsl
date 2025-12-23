@@ -8,8 +8,8 @@ use lsp_types::{
     RenameParams, TextDocumentIdentifier, TextDocumentItem, TextDocumentPositionParams,
     WorkspaceClientCapabilities, WorkspaceEditClientCapabilities,
 };
-use serde::{de::DeserializeOwned, Serialize};
-use serde_json::{json, Value};
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
@@ -45,13 +45,19 @@ impl LspClient {
                 message: format!("Failed to start LSP server '{}': {}", config.name, e),
             })?;
 
-        let stdin = process.stdin.take().ok_or_else(|| RefactorError::TransformFailed {
-            message: "Failed to get LSP server stdin".to_string(),
-        })?;
+        let stdin = process
+            .stdin
+            .take()
+            .ok_or_else(|| RefactorError::TransformFailed {
+                message: "Failed to get LSP server stdin".to_string(),
+            })?;
 
-        let stdout = process.stdout.take().ok_or_else(|| RefactorError::TransformFailed {
-            message: "Failed to get LSP server stdout".to_string(),
-        })?;
+        let stdout = process
+            .stdout
+            .take()
+            .ok_or_else(|| RefactorError::TransformFailed {
+                message: "Failed to get LSP server stdout".to_string(),
+            })?;
 
         Ok(Self {
             config: config.clone(),
@@ -70,16 +76,15 @@ impl LspClient {
             return Ok(());
         }
 
-        let root_uri = Url::from_file_path(&self.root_path).map_err(|_| {
-            RefactorError::TransformFailed {
+        let root_uri =
+            Url::from_file_path(&self.root_path).map_err(|_| RefactorError::TransformFailed {
                 message: "Invalid root path".to_string(),
-            }
-        })?;
+            })?;
 
         let params = InitializeParams {
             process_id: Some(std::process::id()),
             root_uri: Some(root_uri.clone()),
-            root_path: Some(self.root_path.to_string_lossy().to_string()),
+            // root_path: Some(self.root_path.to_string_lossy().to_string()),
             capabilities: ClientCapabilities {
                 workspace: Some(WorkspaceClientCapabilities {
                     workspace_edit: Some(WorkspaceEditClientCapabilities {
@@ -268,9 +273,12 @@ impl LspClient {
         let content = serde_json::to_string(message)?;
         let header = format!("Content-Length: {}\r\n\r\n", content.len());
 
-        let mut stdin = self.stdin.lock().map_err(|_| RefactorError::TransformFailed {
-            message: "Failed to lock stdin".to_string(),
-        })?;
+        let mut stdin = self
+            .stdin
+            .lock()
+            .map_err(|_| RefactorError::TransformFailed {
+                message: "Failed to lock stdin".to_string(),
+            })?;
 
         stdin
             .write_all(header.as_bytes())
@@ -282,9 +290,12 @@ impl LspClient {
     }
 
     fn read_response<R: DeserializeOwned>(&self, expected_id: i64) -> Result<R> {
-        let mut stdout = self.stdout.lock().map_err(|_| RefactorError::TransformFailed {
-            message: "Failed to lock stdout".to_string(),
-        })?;
+        let mut stdout = self
+            .stdout
+            .lock()
+            .map_err(|_| RefactorError::TransformFailed {
+                message: "Failed to lock stdout".to_string(),
+            })?;
 
         loop {
             // Read headers
@@ -293,11 +304,11 @@ impl LspClient {
 
             loop {
                 header_line.clear();
-                stdout.read_line(&mut header_line).map_err(|e| {
-                    RefactorError::TransformFailed {
+                stdout
+                    .read_line(&mut header_line)
+                    .map_err(|e| RefactorError::TransformFailed {
                         message: format!("Failed to read LSP header: {}", e),
-                    }
-                })?;
+                    })?;
 
                 if header_line == "\r\n" || header_line.is_empty() {
                     break;
@@ -370,9 +381,11 @@ impl LspClient {
 
         if let Some(changes) = &edit.changes {
             for (uri, edits) in changes {
-                let path = uri.to_file_path().map_err(|_| RefactorError::TransformFailed {
-                    message: format!("Invalid URI: {}", uri),
-                })?;
+                let path = uri
+                    .to_file_path()
+                    .map_err(|_| RefactorError::TransformFailed {
+                        message: format!("Invalid URI: {}", uri),
+                    })?;
 
                 let text_edits: Vec<TextEdit> = edits.iter().map(TextEdit::from_lsp).collect();
                 result.add_edits(path, text_edits);
@@ -381,22 +394,24 @@ impl LspClient {
 
         if let Some(document_changes) = &edit.document_changes {
             let operations = match document_changes {
-                lsp_types::DocumentChanges::Edits(edits) => {
-                    edits.iter().map(|e| lsp_types::DocumentChangeOperation::Edit(e.clone())).collect()
-                }
+                lsp_types::DocumentChanges::Edits(edits) => edits
+                    .iter()
+                    .map(|e| lsp_types::DocumentChangeOperation::Edit(e.clone()))
+                    .collect(),
                 lsp_types::DocumentChanges::Operations(ops) => ops.clone(),
             };
 
             for change in operations {
                 match change {
                     lsp_types::DocumentChangeOperation::Edit(text_doc_edit) => {
-                        let path = text_doc_edit
-                            .text_document
-                            .uri
-                            .to_file_path()
-                            .map_err(|_| RefactorError::TransformFailed {
-                                message: "Invalid URI in document edit".to_string(),
-                            })?;
+                        let path =
+                            text_doc_edit
+                                .text_document
+                                .uri
+                                .to_file_path()
+                                .map_err(|_| RefactorError::TransformFailed {
+                                    message: "Invalid URI in document edit".to_string(),
+                                })?;
 
                         let text_edits: Vec<TextEdit> = text_doc_edit
                             .edits
@@ -420,9 +435,12 @@ impl LspClient {
     }
 
     fn convert_location(&self, loc: &lsp_types::Location) -> Result<crate::lsp::types::Location> {
-        let path = loc.uri.to_file_path().map_err(|_| RefactorError::TransformFailed {
-            message: format!("Invalid URI: {}", loc.uri),
-        })?;
+        let path = loc
+            .uri
+            .to_file_path()
+            .map_err(|_| RefactorError::TransformFailed {
+                message: format!("Invalid URI: {}", loc.uri),
+            })?;
 
         Ok(crate::lsp::types::Location::new(
             path,

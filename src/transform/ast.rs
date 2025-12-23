@@ -88,15 +88,14 @@ impl AstTransform {
             return Ok(Vec::new());
         };
 
-        let lang = self
-            .registry
-            .detect(path)
-            .ok_or_else(|| RefactorError::UnsupportedLanguage(
+        let lang = self.registry.detect(path).ok_or_else(|| {
+            RefactorError::UnsupportedLanguage(
                 path.extension()
                     .and_then(|e| e.to_str())
                     .unwrap_or("unknown")
                     .to_string(),
-            ))?;
+            )
+        })?;
 
         let tree = lang.parse(source)?;
         let query = lang.query(query_str)?;
@@ -142,7 +141,8 @@ impl AstTransform {
             }
             AstOperation::ReplaceWith { template } => {
                 // Simple template expansion: replace @capture with the matched text
-                let expanded = template.replace(&format!("@{}", match_info.capture_name), &match_info.text);
+                let expanded =
+                    template.replace(&format!("@{}", match_info.capture_name), &match_info.text);
                 source.replace_range(match_info.start_byte..match_info.end_byte, &expanded);
             }
             AstOperation::Rename { from, to } => {
@@ -188,15 +188,21 @@ impl Transform for AstTransform {
 
     fn describe(&self) -> String {
         let query_desc = self.query.as_deref().unwrap_or("(no query)");
-        let ops: Vec<String> = self.operations.iter().map(|op| {
-            match op {
+        let ops: Vec<String> = self
+            .operations
+            .iter()
+            .map(|op| match op {
                 AstOperation::Replace { replacement } => format!("replace with '{}'", replacement),
-                AstOperation::ReplaceWith { template } => format!("replace using template '{}'", template),
+                AstOperation::ReplaceWith { template } => {
+                    format!("replace using template '{}'", template)
+                }
                 AstOperation::Rename { from, to } => format!("rename '{}' to '{}'", from, to),
-                AstOperation::Wrap { prefix, suffix } => format!("wrap with '{}' and '{}'", prefix, suffix),
+                AstOperation::Wrap { prefix, suffix } => {
+                    format!("wrap with '{}' and '{}'", prefix, suffix)
+                }
                 AstOperation::Delete => "delete".to_string(),
-            }
-        }).collect();
+            })
+            .collect();
         format!("AST query '{}': {}", query_desc, ops.join(", "))
     }
 }

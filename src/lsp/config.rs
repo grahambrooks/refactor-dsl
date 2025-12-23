@@ -124,9 +124,7 @@ mod tests {
 
     #[test]
     fn test_lsp_config_builder() {
-        let config = LspConfig::new()
-            .timeout(5000)
-            .verbose();
+        let config = LspConfig::new().timeout(5000).verbose();
 
         assert_eq!(config.timeout_ms, 5000);
         assert!(config.verbose);
@@ -166,8 +164,7 @@ mod tests {
 
     #[test]
     fn test_handles_extension() {
-        let config = LspServerConfig::new("test", "test")
-            .extensions(["rs", "RS"]);
+        let config = LspServerConfig::new("test", "test").extensions(["rs", "RS"]);
 
         assert!(config.handles_extension("rs"));
         assert!(config.handles_extension("RS"));
@@ -177,8 +174,7 @@ mod tests {
 
     #[test]
     fn test_handles_extension_case_insensitive() {
-        let config = LspServerConfig::new("test", "test")
-            .extensions(["ts", "tsx"]);
+        let config = LspServerConfig::new("test", "test").extensions(["ts", "tsx"]);
 
         assert!(config.handles_extension("TS"));
         assert!(config.handles_extension("TSX"));

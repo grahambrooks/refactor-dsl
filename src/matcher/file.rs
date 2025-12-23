@@ -91,10 +91,7 @@ impl FileMatcher {
 
             // Check extension
             if !self.extensions.is_empty() {
-                let ext = path
-                    .extension()
-                    .and_then(|e| e.to_str())
-                    .unwrap_or("");
+                let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
                 if !self.extensions.iter().any(|e| e.eq_ignore_ascii_case(ext)) {
                     continue;
                 }
@@ -232,9 +229,7 @@ mod tests {
         let dir = TempDir::new().unwrap();
         create_test_files(dir.path());
 
-        let matcher = FileMatcher::new()
-            .extension("rs")
-            .exclude("**/tests/**");
+        let matcher = FileMatcher::new().extension("rs").exclude("**/tests/**");
         let files = matcher.collect(dir.path()).unwrap();
 
         assert_eq!(files.len(), 2);
@@ -274,7 +269,13 @@ mod tests {
         let files = matcher.collect(dir.path()).unwrap();
 
         assert_eq!(files.len(), 1);
-        assert!(files[0].file_name().unwrap().to_string_lossy().starts_with("main"));
+        assert!(
+            files[0]
+                .file_name()
+                .unwrap()
+                .to_string_lossy()
+                .starts_with("main")
+        );
     }
 
     #[test]

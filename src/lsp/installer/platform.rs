@@ -49,11 +49,7 @@ impl Platform {
             "windows" => Os::Windows,
             _ => {
                 // Default to Linux for unknown Unix-like systems
-                if cfg!(unix) {
-                    Os::Linux
-                } else {
-                    Os::Windows
-                }
+                if cfg!(unix) { Os::Linux } else { Os::Windows }
             }
         }
     }
@@ -150,7 +146,11 @@ mod tests {
         let patterns = linux_x64.get_target_patterns();
 
         assert!(patterns.iter().any(|p| p.contains("linux")));
-        assert!(patterns.iter().any(|p| p.contains("x86_64") || p.contains("x64")));
+        assert!(
+            patterns
+                .iter()
+                .any(|p| p.contains("x86_64") || p.contains("x64"))
+        );
     }
 
     #[test]
@@ -171,7 +171,10 @@ mod tests {
 
     #[test]
     fn test_exe_extension() {
-        assert_eq!(Platform::new(Os::Windows, Arch::X64).exe_extension(), ".exe");
+        assert_eq!(
+            Platform::new(Os::Windows, Arch::X64).exe_extension(),
+            ".exe"
+        );
         assert_eq!(Platform::new(Os::Linux, Arch::X64).exe_extension(), "");
         assert_eq!(Platform::new(Os::MacOS, Arch::Arm64).exe_extension(), "");
     }

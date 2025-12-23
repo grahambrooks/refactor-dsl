@@ -100,9 +100,15 @@ fn main() -> Result<()> {
             exclude,
             path,
             dry_run,
-        } => {
-            cmd_replace(pattern, replacement, extension, include, exclude, path, dry_run)
-        }
+        } => cmd_replace(
+            pattern,
+            replacement,
+            extension,
+            include,
+            exclude,
+            path,
+            dry_run,
+        ),
         Commands::Find {
             query,
             extension,
@@ -173,7 +179,9 @@ fn cmd_find(query: String, extension: Option<String>, path: PathBuf) -> Result<(
         FileMatcher::new()
     };
 
-    let files = file_matcher.collect(&path).context("Failed to collect files")?;
+    let files = file_matcher
+        .collect(&path)
+        .context("Failed to collect files")?;
 
     for file in files {
         if let Ok(matches) = matcher.find_matches_in_file(&file, &registry) {

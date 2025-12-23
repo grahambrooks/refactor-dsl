@@ -57,7 +57,11 @@ impl DiffSummary {
         }
 
         Self {
-            files_changed: if insertions > 0 || deletions > 0 { 1 } else { 0 },
+            files_changed: if insertions > 0 || deletions > 0 {
+                1
+            } else {
+                0
+            },
             insertions,
             deletions,
         }
@@ -241,7 +245,7 @@ mod tests {
         assert!(diff.contains("\x1b[31m")); // RED for deletions
         assert!(diff.contains("\x1b[32m")); // GREEN for insertions
         assert!(diff.contains("\x1b[36m")); // CYAN for headers
-        assert!(diff.contains("\x1b[0m"));  // RESET
+        assert!(diff.contains("\x1b[0m")); // RESET
     }
 
     #[test]

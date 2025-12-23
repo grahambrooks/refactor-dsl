@@ -34,13 +34,18 @@ impl TransformBuilder {
 
     /// Adds a text-based pattern replacement.
     pub fn replace_pattern(mut self, pattern: &str, replacement: &str) -> Self {
-        self.transforms.push(Box::new(TextTransform::replace(pattern, replacement)));
+        self.transforms
+            .push(Box::new(TextTransform::replace(pattern, replacement)));
         self
     }
 
     /// Adds a literal string replacement.
     pub fn replace_literal(mut self, needle: &str, replacement: &str) -> Self {
-        self.transforms.push(Box::new(TextTransform::replace_literal(needle, replacement)));
+        self.transforms
+            .push(Box::new(TextTransform::replace_literal(
+                needle,
+                replacement,
+            )));
         self
     }
 

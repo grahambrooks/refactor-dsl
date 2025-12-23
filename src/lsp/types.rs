@@ -258,14 +258,8 @@ mod tests {
     fn test_apply_multiple_edits() {
         let content = "let x = old;\nlet y = old;";
         let edits = vec![
-            TextEdit::new(
-                Range::new(Position::new(0, 8), Position::new(0, 11)),
-                "new",
-            ),
-            TextEdit::new(
-                Range::new(Position::new(1, 8), Position::new(1, 11)),
-                "new",
-            ),
+            TextEdit::new(Range::new(Position::new(0, 8), Position::new(0, 11)), "new"),
+            TextEdit::new(Range::new(Position::new(1, 8), Position::new(1, 11)), "new"),
         ];
 
         let result = apply_edits_to_string(content, &edits);
@@ -285,14 +279,8 @@ mod tests {
         edit.add_edits(
             PathBuf::from("file2.rs"),
             vec![
-                TextEdit::new(
-                    Range::new(Position::new(0, 0), Position::new(0, 3)),
-                    "bar",
-                ),
-                TextEdit::new(
-                    Range::new(Position::new(1, 0), Position::new(1, 3)),
-                    "baz",
-                ),
+                TextEdit::new(Range::new(Position::new(0, 0), Position::new(0, 3)), "bar"),
+                TextEdit::new(Range::new(Position::new(1, 0), Position::new(1, 3)), "baz"),
             ],
         );
 

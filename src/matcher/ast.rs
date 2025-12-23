@@ -49,11 +49,7 @@ impl AstMatcher {
     }
 
     /// Finds all matches in the given source code.
-    pub fn find_matches(
-        &self,
-        source: &str,
-        lang: &dyn Language,
-    ) -> Result<Vec<AstMatch>> {
+    pub fn find_matches(&self, source: &str, lang: &dyn Language) -> Result<Vec<AstMatch>> {
         let tree = lang.parse(source)?;
         let mut all_matches = Vec::new();
 
@@ -78,14 +74,14 @@ impl AstMatcher {
         registry: &LanguageRegistry,
     ) -> Result<Vec<AstMatch>> {
         let source = std::fs::read_to_string(path)?;
-        let lang = registry
-            .detect(path)
-            .ok_or_else(|| crate::error::RefactorError::UnsupportedLanguage(
+        let lang = registry.detect(path).ok_or_else(|| {
+            crate::error::RefactorError::UnsupportedLanguage(
                 path.extension()
                     .and_then(|e| e.to_str())
                     .unwrap_or("unknown")
                     .to_string(),
-            ))?;
+            )
+        })?;
 
         self.find_matches(&source, lang)
     }
@@ -105,10 +101,7 @@ impl AstMatcher {
             for capture in query_match.captures {
                 let node = capture.node;
                 let capture_name = query.capture_names()[capture.index as usize].to_string();
-                let text = node
-                    .utf8_text(source_bytes)
-                    .unwrap_or("")
-                    .to_string();
+                let text = node.utf8_text(source_bytes).unwrap_or("").to_string();
 
                 matches.push(AstMatch {
                     text,
@@ -149,8 +142,7 @@ fn hello() {}
 fn world() {}
 pub fn greet(name: &str) {}
 "#;
-        let matcher = AstMatcher::new()
-            .query("(function_item name: (identifier) @fn_name)");
+        let matcher = AstMatcher::new().query("(function_item name: (identifier) @fn_name)");
 
         let matches = matcher.find_matches(source, &Rust).unwrap();
 
@@ -167,8 +159,7 @@ pub fn greet(name: &str) {}
 struct Point { x: i32, y: i32 }
 struct Circle { center: Point, radius: f64 }
 "#;
-        let matcher = AstMatcher::new()
-            .query("(struct_item name: (type_identifier) @struct_name)");
+        let matcher = AstMatcher::new().query("(struct_item name: (type_identifier) @struct_name)");
 
         let matches = matcher.find_matches(source, &Rust).unwrap();
 
@@ -184,8 +175,7 @@ struct Circle { center: Point, radius: f64 }
 function hello() { }
 function world(): void { }
 "#;
-        let matcher = AstMatcher::new()
-            .query("(function_declaration name: (identifier) @fn_name)");
+        let matcher = AstMatcher::new().query("(function_declaration name: (identifier) @fn_name)");
 
         let matches = matcher.find_matches(source, &TypeScript).unwrap();
 
@@ -204,8 +194,7 @@ def hello():
 def world(x):
     return x * 2
 "#;
-        let matcher = AstMatcher::new()
-            .query("(function_definition name: (identifier) @fn_name)");
+        let matcher = AstMatcher::new().query("(function_definition name: (identifier) @fn_name)");
 
         let matches = matcher.find_matches(source, &Python).unwrap();
 
@@ -240,8 +229,7 @@ fn process(data: Vec<u8>) -> Result<String> {
     #[test]
     fn test_match_positions() {
         let source = "fn test() {}";
-        let matcher = AstMatcher::new()
-            .query("(function_item name: (identifier) @fn_name)");
+        let matcher = AstMatcher::new().query("(function_item name: (identifier) @fn_name)");
 
         let matches = matcher.find_matches(source, &Rust).unwrap();
 
@@ -257,8 +245,7 @@ fn process(data: Vec<u8>) -> Result<String> {
     #[test]
     fn test_has_matches() {
         let source = "fn hello() {}";
-        let matcher = AstMatcher::new()
-            .query("(function_item name: (identifier) @fn)");
+        let matcher = AstMatcher::new().query("(function_item name: (identifier) @fn)");
 
         assert!(matcher.has_matches(source, &Rust).unwrap());
 
@@ -287,8 +274,7 @@ struct Point { x: i32 }
     #[test]
     fn test_no_matches() {
         let source = "let x = 42;";
-        let matcher = AstMatcher::new()
-            .query("(function_item name: (identifier) @fn)");
+        let matcher = AstMatcher::new().query("(function_item name: (identifier) @fn)");
 
         let matches = matcher.find_matches(source, &Rust).unwrap();
         assert!(matches.is_empty());
@@ -297,8 +283,7 @@ struct Point { x: i32 }
     #[test]
     fn test_empty_source() {
         let source = "";
-        let matcher = AstMatcher::new()
-            .query("(function_item name: (identifier) @fn)");
+        let matcher = AstMatcher::new().query("(function_item name: (identifier) @fn)");
 
         let matches = matcher.find_matches(source, &Rust).unwrap();
         assert!(matches.is_empty());

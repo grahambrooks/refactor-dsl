@@ -101,13 +101,15 @@ impl FileTransform {
 
     /// Deletes a file or directory.
     pub fn delete(mut self, path: impl Into<PathBuf>) -> Self {
-        self.operations.push(FileOperation::Delete { path: path.into() });
+        self.operations
+            .push(FileOperation::Delete { path: path.into() });
         self
     }
 
     /// Creates a directory (and parent directories).
     pub fn create_dir(mut self, path: impl Into<PathBuf>) -> Self {
-        self.operations.push(FileOperation::CreateDir { path: path.into() });
+        self.operations
+            .push(FileOperation::CreateDir { path: path.into() });
         self
     }
 

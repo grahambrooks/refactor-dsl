@@ -1,9 +1,9 @@
 //! Package definition types for the Mason registry.
 
+use super::platform::{Arch, Os, Platform};
+use crate::error::{RefactorError, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use super::platform::{Platform, Os, Arch};
-use crate::error::{RefactorError, Result};
 
 /// A package definition from the Mason registry.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -85,14 +85,25 @@ impl Package {
 
         let os_match = match platform.os {
             Os::Linux => target_lower.contains("linux"),
-            Os::MacOS => target_lower.contains("darwin") || target_lower.contains("macos") || target_lower.contains("apple"),
+            Os::MacOS => {
+                target_lower.contains("darwin")
+                    || target_lower.contains("macos")
+                    || target_lower.contains("apple")
+            }
             Os::Windows => target_lower.contains("windows") || target_lower.contains("win"),
         };
 
         let arch_match = match platform.arch {
-            Arch::X64 => target_lower.contains("x86_64") || target_lower.contains("x64") || target_lower.contains("amd64"),
+            Arch::X64 => {
+                target_lower.contains("x86_64")
+                    || target_lower.contains("x64")
+                    || target_lower.contains("amd64")
+            }
             Arch::Arm64 => target_lower.contains("aarch64") || target_lower.contains("arm64"),
-            Arch::X86 => target_lower.contains("i686") || target_lower.contains("x86") && !target_lower.contains("x86_64"),
+            Arch::X86 => {
+                target_lower.contains("i686")
+                    || target_lower.contains("x86") && !target_lower.contains("x86_64")
+            }
         };
 
         os_match && arch_match
@@ -127,10 +138,11 @@ impl Package {
     /// Constructs a GitHub release download URL.
     fn github_download_url(&self, id: &str, asset: &SourceAsset) -> Result<String> {
         // Format: pkg:github/owner/repo@version
-        let without_prefix = id.strip_prefix("pkg:github/")
-            .ok_or_else(|| RefactorError::TransformFailed {
-                message: "Invalid GitHub package ID".into(),
-            })?;
+        let without_prefix =
+            id.strip_prefix("pkg:github/")
+                .ok_or_else(|| RefactorError::TransformFailed {
+                    message: "Invalid GitHub package ID".into(),
+                })?;
 
         let parts: Vec<&str> = without_prefix.split('@').collect();
         if parts.len() != 2 {
@@ -140,7 +152,7 @@ impl Package {
         }
 
         let repo_path = parts[0]; // e.g., "rust-lang/rust-analyzer"
-        let version = parts[1];   // e.g., "2024-01-01"
+        let version = parts[1]; // e.g., "2024-01-01"
 
         // GitHub release URL format
         Ok(format!(
@@ -247,8 +259,14 @@ bin:
             bin: HashMap::new(),
         };
 
-        let linux_x64 = Platform { os: Os::Linux, arch: Arch::X64 };
-        let macos_arm = Platform { os: Os::MacOS, arch: Arch::Arm64 };
+        let linux_x64 = Platform {
+            os: Os::Linux,
+            arch: Arch::X64,
+        };
+        let macos_arm = Platform {
+            os: Os::MacOS,
+            arch: Arch::Arm64,
+        };
 
         assert!(package.get_asset_for_platform(&linux_x64).is_some());
         assert!(package.get_asset_for_platform(&macos_arm).is_some());

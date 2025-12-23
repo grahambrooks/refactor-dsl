@@ -1,11 +1,11 @@
 //! LSP-based rename refactoring.
 
 use crate::error::{RefactorError, Result};
+use crate::lsp::LspRegistry;
 use crate::lsp::client::LspClient;
 use crate::lsp::config::LspServerConfig;
 use crate::lsp::installer::LspInstaller;
 use crate::lsp::types::{Position, WorkspaceEdit};
-use crate::lsp::LspRegistry;
 use std::path::PathBuf;
 
 /// Builder for LSP-based rename operations.
@@ -64,11 +64,20 @@ impl LspRename {
         // Find the symbol in the file
         let position = find_symbol_position(&content, symbol_name).ok_or_else(|| {
             RefactorError::TransformFailed {
-                message: format!("Symbol '{}' not found in {}", symbol_name, file_path.display()),
+                message: format!(
+                    "Symbol '{}' not found in {}",
+                    symbol_name,
+                    file_path.display()
+                ),
             }
         })?;
 
-        Ok(Self::new(file_path, position.line, position.character, new_name))
+        Ok(Self::new(
+            file_path,
+            position.line,
+            position.character,
+            new_name,
+        ))
     }
 
     /// Sets the project root path.
@@ -108,13 +117,15 @@ impl LspRename {
                 registry
                     .find_for_file(&self.file_path)
                     .cloned()
-                    .ok_or_else(|| RefactorError::UnsupportedLanguage(
-                        self.file_path
-                            .extension()
-                            .and_then(|e| e.to_str())
-                            .unwrap_or("unknown")
-                            .to_string(),
-                    ))?
+                    .ok_or_else(|| {
+                        RefactorError::UnsupportedLanguage(
+                            self.file_path
+                                .extension()
+                                .and_then(|e| e.to_str())
+                                .unwrap_or("unknown")
+                                .to_string(),
+                        )
+                    })?
             }
         };
 
@@ -162,10 +173,7 @@ impl LspRename {
         }
 
         // Try to run with --version or --help to check if it exists
-        Command::new(command)
-            .arg("--version")
-            .output()
-            .is_ok()
+        Command::new(command).arg("--version").output().is_ok()
     }
 
     /// Attempts to install the LSP server from the Mason registry.

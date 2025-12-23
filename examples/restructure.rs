@@ -134,7 +134,10 @@ fn example_collect_files() -> Result<()> {
         .exclude("**/target/**")
         .collect(&current_dir)?;
 
-    println!("\n  Found {} files with TODO/FIXME comments:", files_with_todo.len());
+    println!(
+        "\n  Found {} files with TODO/FIXME comments:",
+        files_with_todo.len()
+    );
     for file in files_with_todo.iter().take(5) {
         println!("    - {}", file.display());
     }

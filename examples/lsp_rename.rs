@@ -20,8 +20,8 @@
 //! cargo run --example lsp_rename -- /path/to/project src/main.rs old_name new_name
 //! ```
 
-use refactor_dsl::lsp::{LspRegistry, LspRename, Position};
 use refactor_dsl::error::Result;
+use refactor_dsl::lsp::{LspRegistry, LspRename, Position};
 use std::env;
 use std::path::PathBuf;
 
@@ -66,7 +66,10 @@ fn main() -> Result<()> {
         }
         _ => {
             eprintln!("Usage:");
-            eprintln!("  {} <project_path> <relative_file> <old_name> <new_name>", args[0]);
+            eprintln!(
+                "  {} <project_path> <relative_file> <old_name> <new_name>",
+                args[0]
+            );
             eprintln!("  {} <file_path> <line:col> <new_name>", args[0]);
             std::process::exit(1);
         }
@@ -197,8 +200,18 @@ fn demo_rename_workflow() -> Result<()> {
 }
 
 /// Performs a rename by finding the symbol first.
-fn perform_rename(file_path: &PathBuf, old_name: &str, new_name: &str, dry_run: bool) -> Result<()> {
-    println!("Renaming '{}' -> '{}' in {}", old_name, new_name, file_path.display());
+fn perform_rename(
+    file_path: &PathBuf,
+    old_name: &str,
+    new_name: &str,
+    dry_run: bool,
+) -> Result<()> {
+    println!(
+        "Renaming '{}' -> '{}' in {}",
+        old_name,
+        new_name,
+        file_path.display()
+    );
 
     let mut rename = LspRename::find_symbol(file_path, old_name, new_name)?;
 
@@ -211,7 +224,11 @@ fn perform_rename(file_path: &PathBuf, old_name: &str, new_name: &str, dry_run: 
     if result.is_empty() {
         println!("No changes needed or symbol not found.");
     } else {
-        println!("\nChanges ({} files, {} edits):", result.file_count(), result.edit_count());
+        println!(
+            "\nChanges ({} files, {} edits):",
+            result.file_count(),
+            result.edit_count()
+        );
         println!("{}", result.diff()?);
 
         if dry_run {
@@ -250,7 +267,11 @@ fn perform_rename_at_position(
     if result.is_empty() {
         println!("No changes needed or symbol not found.");
     } else {
-        println!("\nChanges ({} files, {} edits):", result.file_count(), result.edit_count());
+        println!(
+            "\nChanges ({} files, {} edits):",
+            result.file_count(),
+            result.edit_count()
+        );
         println!("{}", result.diff()?);
 
         if dry_run {

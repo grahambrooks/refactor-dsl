@@ -240,8 +240,7 @@ mod tests {
     #[test]
     fn test_registry_register_custom() {
         let mut registry = LspRegistry::empty();
-        registry.register(LspServerConfig::new("custom", "custom-lsp")
-            .extensions(["xyz"]));
+        registry.register(LspServerConfig::new("custom", "custom-lsp").extensions(["xyz"]));
 
         let config = registry.find_by_extension("xyz");
         assert!(config.is_some());

@@ -74,8 +74,7 @@ pub fn greet(name: &str) {
 "#;
 
     // Find all function definitions
-    let matcher = AstMatcher::new()
-        .query("(function_item name: (identifier) @fn_name)");
+    let matcher = AstMatcher::new().query("(function_item name: (identifier) @fn_name)");
 
     let matches = matcher.find_matches(rust_source, &Rust)?;
 
@@ -90,8 +89,7 @@ pub fn greet(name: &str) {
     }
 
     // Find function calls
-    let call_matcher = AstMatcher::new()
-        .query("(call_expression function: (identifier) @fn_call)");
+    let call_matcher = AstMatcher::new().query("(call_expression function: (identifier) @fn_call)");
 
     let calls = call_matcher.find_matches(rust_source, &Rust)?;
 
@@ -158,8 +156,7 @@ class OldClass:
         return old_function(42)
 "#;
 
-    let py_matcher = AstMatcher::new()
-        .query("(function_definition name: (identifier) @fn)");
+    let py_matcher = AstMatcher::new().query("(function_definition name: (identifier) @fn)");
 
     let py_matches = py_matcher.find_matches(python_source, &Python)?;
 
@@ -179,8 +176,7 @@ const processData = (data: Data): Result => {
 };
 "#;
 
-    let ts_matcher = AstMatcher::new()
-        .query("(function_declaration name: (identifier) @fn)");
+    let ts_matcher = AstMatcher::new().query("(function_declaration name: (identifier) @fn)");
 
     let ts_matches = ts_matcher.find_matches(ts_source, &TypeScript)?;
 
@@ -190,8 +186,7 @@ const processData = (data: Data): Result => {
     }
 
     // Arrow functions
-    let arrow_matcher = AstMatcher::new()
-        .query("(variable_declarator name: (identifier) @name)");
+    let arrow_matcher = AstMatcher::new().query("(variable_declarator name: (identifier) @name)");
 
     let arrow_matches = arrow_matcher.find_matches(ts_source, &TypeScript)?;
 

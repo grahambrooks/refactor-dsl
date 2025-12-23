@@ -33,10 +33,12 @@ pub trait Language: Send + Sync {
                 message: format!("Failed to set language: {e}"),
             })?;
 
-        parser.parse(source, None).ok_or_else(|| RefactorError::Parse {
-            path: Path::new("<source>").to_path_buf(),
-            message: "Failed to parse source".to_string(),
-        })
+        parser
+            .parse(source, None)
+            .ok_or_else(|| RefactorError::Parse {
+                path: Path::new("<source>").to_path_buf(),
+                message: "Failed to parse source".to_string(),
+            })
     }
 
     /// Creates a tree-sitter query for this language.
@@ -46,7 +48,9 @@ pub trait Language: Send + Sync {
 
     /// Checks if this language handles the given file extension.
     fn matches_extension(&self, ext: &str) -> bool {
-        self.extensions().iter().any(|e| e.eq_ignore_ascii_case(ext))
+        self.extensions()
+            .iter()
+            .any(|e| e.eq_ignore_ascii_case(ext))
     }
 }
 
