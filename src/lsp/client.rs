@@ -8,14 +8,14 @@ use lsp_types::{
     RenameParams, TextDocumentIdentifier, TextDocumentItem, TextDocumentPositionParams,
     WorkspaceClientCapabilities, WorkspaceEditClientCapabilities,
 };
-use serde::{Serialize, de::DeserializeOwned};
-use serde_json::{Value, json};
+use serde::{de::DeserializeOwned, Serialize};
+use serde_json::{json, Value};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+use std::str::FromStr;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, Mutex};
-use url::Url;
 
 /// A client for communicating with an LSP server.
 pub struct LspClient {
@@ -70,21 +70,36 @@ impl LspClient {
         })
     }
 
+    // Helper conversions between Path and lsp_types::Uri
+    fn path_to_lsp_uri(path: &Path) -> Result<lsp_types::Uri> {
+        let url = url::Url::from_file_path(path).map_err(|_| RefactorError::TransformFailed {
+            message: format!("Invalid file path: {}", path.display()),
+        })?;
+        lsp_types::Uri::from_str(url.as_str()).map_err(|e| RefactorError::TransformFailed {
+            message: format!("Failed to convert URL to LSP Uri: {}", e),
+        })
+    }
+
+    fn uri_to_path(uri: &lsp_types::Uri) -> Result<PathBuf> {
+        let url = url::Url::parse(uri.as_str()).map_err(|e| RefactorError::TransformFailed {
+            message: format!("Invalid URI: {:?} ({})", uri, e),
+        })?;
+        url.to_file_path()
+            .map_err(|_| RefactorError::TransformFailed {
+                message: format!("Invalid URI: {:?}", uri),
+            })
+    }
+
     /// Initializes the LSP server.
     pub fn initialize(&mut self) -> Result<()> {
         if self.initialized {
             return Ok(());
         }
 
-        let root_uri =
-            Url::from_file_path(&self.root_path).map_err(|_| RefactorError::TransformFailed {
-                message: "Invalid root path".to_string(),
-            })?;
+        let root_uri = Self::path_to_lsp_uri(&self.root_path)?;
 
         let params = InitializeParams {
             process_id: Some(std::process::id()),
-            root_uri: Some(root_uri.clone()),
-            // root_path: Some(self.root_path.to_string_lossy().to_string()),
             capabilities: ClientCapabilities {
                 workspace: Some(WorkspaceClientCapabilities {
                     workspace_edit: Some(WorkspaceEditClientCapabilities {
@@ -118,9 +133,7 @@ impl LspClient {
     /// Opens a document in the LSP server.
     pub fn open_document(&self, path: &Path) -> Result<()> {
         let content = std::fs::read_to_string(path)?;
-        let uri = Url::from_file_path(path).map_err(|_| RefactorError::TransformFailed {
-            message: format!("Invalid file path: {}", path.display()),
-        })?;
+        let uri = Self::path_to_lsp_uri(path)?;
 
         let language_id = self.detect_language_id(path);
 
@@ -139,9 +152,7 @@ impl LspClient {
 
     /// Performs a rename operation.
     pub fn rename(&self, path: &Path, position: Position, new_name: &str) -> Result<WorkspaceEdit> {
-        let uri = Url::from_file_path(path).map_err(|_| RefactorError::TransformFailed {
-            message: format!("Invalid file path: {}", path.display()),
-        })?;
+        let uri = Self::path_to_lsp_uri(path)?;
 
         let params = RenameParams {
             text_document_position: TextDocumentPositionParams {
@@ -168,9 +179,7 @@ impl LspClient {
         position: Position,
         include_declaration: bool,
     ) -> Result<Vec<crate::lsp::types::Location>> {
-        let uri = Url::from_file_path(path).map_err(|_| RefactorError::TransformFailed {
-            message: format!("Invalid file path: {}", path.display()),
-        })?;
+        let uri = Self::path_to_lsp_uri(path)?;
 
         let params = lsp_types::ReferenceParams {
             text_document_position: TextDocumentPositionParams {
@@ -200,9 +209,7 @@ impl LspClient {
         path: &Path,
         position: Position,
     ) -> Result<Vec<crate::lsp::types::Location>> {
-        let uri = Url::from_file_path(path).map_err(|_| RefactorError::TransformFailed {
-            message: format!("Invalid file path: {}", path.display()),
-        })?;
+        let uri = Self::path_to_lsp_uri(path)?;
 
         let params = TextDocumentPositionParams {
             text_document: TextDocumentIdentifier { uri },
@@ -381,11 +388,7 @@ impl LspClient {
 
         if let Some(changes) = &edit.changes {
             for (uri, edits) in changes {
-                let path = uri
-                    .to_file_path()
-                    .map_err(|_| RefactorError::TransformFailed {
-                        message: format!("Invalid URI: {}", uri),
-                    })?;
+                let path = Self::uri_to_path(uri)?;
 
                 let text_edits: Vec<TextEdit> = edits.iter().map(TextEdit::from_lsp).collect();
                 result.add_edits(path, text_edits);
@@ -404,13 +407,7 @@ impl LspClient {
             for change in operations {
                 // Skip create/rename/delete operations for now
                 if let lsp_types::DocumentChangeOperation::Edit(text_doc_edit) = change {
-                    let path = text_doc_edit
-                        .text_document
-                        .uri
-                        .to_file_path()
-                        .map_err(|_| RefactorError::TransformFailed {
-                            message: "Invalid URI in document edit".to_string(),
-                        })?;
+                    let path = Self::uri_to_path(&text_doc_edit.text_document.uri)?;
 
                     let text_edits: Vec<TextEdit> = text_doc_edit
                         .edits
@@ -432,12 +429,7 @@ impl LspClient {
     }
 
     fn convert_location(&self, loc: &lsp_types::Location) -> Result<crate::lsp::types::Location> {
-        let path = loc
-            .uri
-            .to_file_path()
-            .map_err(|_| RefactorError::TransformFailed {
-                message: format!("Invalid URI: {}", loc.uri),
-            })?;
+        let path = Self::uri_to_path(&loc.uri)?;
 
         Ok(crate::lsp::types::Location::new(
             path,

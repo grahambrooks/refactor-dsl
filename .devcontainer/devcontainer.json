@@ -1,0 +1,42 @@
+{
+  "name": "refactor-dsl dev",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "bookworm"
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
+    }
+  },
+  "mounts": [
+    "source=refactor-dsl-cargo-registry,target=/usr/local/cargo/registry,type=volume",
+    "source=refactor-dsl-cargo-git,target=/usr/local/cargo/git,type=volume"
+  ],
+  "remoteUser": "vscode",
+  "containerUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/zsh"
+      },
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "ms-vscode.cpptools",
+        "tamasfe.even-better-toml"
+      ]
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [
+  ],
+  "runArgs": [
+    "--init"
+  ]
+}
+
