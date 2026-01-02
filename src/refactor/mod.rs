@@ -1,5 +1,7 @@
 //! Main refactoring engine and DSL entry point.
 
+pub mod operations;
+
 use crate::diff::{DiffSummary, colorized_diff, unified_diff};
 use crate::error::{RefactorError, Result};
 use crate::matcher::Matcher;

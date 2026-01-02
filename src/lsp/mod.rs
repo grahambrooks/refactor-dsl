@@ -122,6 +122,45 @@ impl LspRegistry {
                 ".clangd".to_string(),
             ],
         });
+
+        // Java - jdtls (Eclipse JDT Language Server)
+        self.register(LspServerConfig {
+            name: "jdtls".to_string(),
+            command: "jdtls".to_string(),
+            args: vec![],
+            extensions: vec!["java".to_string()],
+            root_markers: vec![
+                "pom.xml".to_string(),
+                "build.gradle".to_string(),
+                "build.gradle.kts".to_string(),
+                ".project".to_string(),
+            ],
+        });
+
+        // C# - omnisharp
+        self.register(LspServerConfig {
+            name: "omnisharp".to_string(),
+            command: "omnisharp".to_string(),
+            args: vec!["--languageserver".to_string()],
+            extensions: vec!["cs".to_string(), "csx".to_string()],
+            root_markers: vec![
+                "*.sln".to_string(),
+                "*.csproj".to_string(),
+                "omnisharp.json".to_string(),
+            ],
+        });
+
+        // Ruby - solargraph
+        self.register(LspServerConfig {
+            name: "solargraph".to_string(),
+            command: "solargraph".to_string(),
+            args: vec!["stdio".to_string()],
+            extensions: vec!["rb".to_string(), "rake".to_string(), "gemspec".to_string()],
+            root_markers: vec![
+                "Gemfile".to_string(),
+                ".solargraph.yml".to_string(),
+            ],
+        });
     }
 
     /// Registers a custom LSP server configuration.
@@ -254,5 +293,37 @@ mod tests {
         assert!(registry.find_by_extension("RS").is_some());
         assert!(registry.find_by_extension("Rs").is_some());
         assert!(registry.find_by_extension("PY").is_some());
+    }
+
+    #[test]
+    fn test_registry_find_java() {
+        let registry = LspRegistry::new();
+        let config = registry.find_by_extension("java");
+
+        assert!(config.is_some());
+        assert_eq!(config.unwrap().name, "jdtls");
+    }
+
+    #[test]
+    fn test_registry_find_csharp() {
+        let registry = LspRegistry::new();
+
+        let config = registry.find_by_extension("cs");
+        assert!(config.is_some());
+        assert_eq!(config.unwrap().name, "omnisharp");
+
+        assert!(registry.find_by_extension("csx").is_some());
+    }
+
+    #[test]
+    fn test_registry_find_ruby() {
+        let registry = LspRegistry::new();
+
+        let config = registry.find_by_extension("rb");
+        assert!(config.is_some());
+        assert_eq!(config.unwrap().name, "solargraph");
+
+        assert!(registry.find_by_extension("rake").is_some());
+        assert!(registry.find_by_extension("gemspec").is_some());
     }
 }

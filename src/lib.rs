@@ -97,6 +97,7 @@ pub mod lang;
 pub mod lsp;
 pub mod matcher;
 pub mod refactor;
+pub mod scope;
 pub mod transform;
 
 /// Prelude for convenient imports.
@@ -106,16 +107,32 @@ pub mod prelude {
         GeneratedUpgrade, LibraryAnalyzer, TransformSpec, UpgradeConfig, UpgradeGenerator,
     };
     pub use crate::codemod::{
-        angular_v4v5_upgrade, rxjs_5_to_6_upgrade, AngularV4V5Upgrade, Codemod, CodemodResult,
-        RepoFilter, RxJS5To6Upgrade, Upgrade,
+        angular_v4v5_upgrade, rxjs_5_to_6_upgrade, AdvancedRepoFilter, AngularV4V5Upgrade,
+        Codemod, CodemodResult, ComparisonOp, DependencyFilter, DependencyInfo, FilterPresets,
+        Framework, FrameworkCategory, FrameworkFilter, FrameworkInfo, LanguageFilter,
+        LanguageInfo, MatchMode, MetricCondition, MetricFilter, PackageManager,
+        ProgrammingLanguage, RepoFilter, RepositoryInfo, RepositoryMetrics, RxJS5To6Upgrade,
+        Upgrade, VersionConstraint,
     };
     pub use crate::error::{RefactorError, Result};
     pub use crate::git::{BranchOps, CommitOps, GitAuth, GitOps, PushOps};
     pub use crate::github::{GitHubClient, GitHubRepo, RepoOps};
-    pub use crate::lang::{Language, LanguageRegistry, Python, Rust, TypeScript};
+    pub use crate::lang::{CSharp, Go, Java, Language, LanguageRegistry, Python, Ruby, Rust, TypeScript};
     pub use crate::lsp::{LspClient, LspInstaller, LspRegistry, LspRename, LspServerConfig};
     pub use crate::matcher::{AstMatcher, FileMatcher, GitMatcher, Matcher};
+    pub use crate::refactor::operations::{
+        ChangeSignature, DeadCodeItem, DeadCodeReport, DeadCodeSummary, DeadCodeType,
+        DeleteKind, ExtractConstant, ExtractFunction, ExtractVariable, FindDeadCode,
+        InlineFunction, InlineVariable, MoveBetweenModules, MoveToFile, ParameterSpec,
+        ParameterStrategy, RefactoringContext, RefactoringOperation, RefactoringPreview,
+        RefactoringResult as OpRefactoringResult, RefactoringRunner, SafeDelete, SymbolKind,
+        TextEdit, UsageLocation, ValidationResult, Visibility,
+    };
     pub use crate::refactor::{MultiRepoRefactor, Refactor, RefactorResult};
+    pub use crate::scope::{
+        Binding, BindingKind, DeadCodeInfo, Reference, ReferenceKind, SafeDeleteResult,
+        ScopeAnalyzer, UsageAnalyzer, UsageInfo,
+    };
     pub use crate::transform::{
         AstTransform, FileTransform, TextTransform, Transform, TransformBuilder,
     };

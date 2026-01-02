@@ -264,6 +264,10 @@ impl ApiExtractor {
             "rust" => self.extract_rust(path, source, lang),
             "typescript" => self.extract_typescript(path, source, lang),
             "python" => self.extract_python(path, source, lang),
+            "go" => self.extract_go(path, source, lang),
+            "java" => self.extract_java(path, source, lang),
+            "csharp" => self.extract_csharp(path, source, lang),
+            "ruby" => self.extract_ruby(path, source, lang),
             _ => Ok(Vec::new()),
         }
     }
@@ -1012,6 +1016,988 @@ impl ApiExtractor {
 
         params
     }
+
+    fn extract_go(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+        let tree = lang.parse(source)?;
+        let source_bytes = source.as_bytes();
+        let mut signatures = Vec::new();
+
+        // Query for function declarations
+        let fn_query = lang.query(
+            r#"
+            (function_declaration
+                name: (identifier) @fn_name
+                parameters: (parameter_list) @params
+                result: (_)? @return_type
+            ) @function
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&fn_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut fn_name = None;
+            let mut params_node = None;
+            let mut return_node = None;
+            let mut fn_node = None;
+
+            for capture in m.captures {
+                let name = fn_query.capture_names()[capture.index as usize];
+                match name {
+                    "fn_name" => {
+                        fn_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "params" => {
+                        params_node = Some(capture.node);
+                    }
+                    "return_type" => {
+                        return_node = Some(capture.node);
+                    }
+                    "function" => {
+                        fn_node = Some(capture.node);
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(fn_n)) = (fn_name, fn_node) {
+                // In Go, exported names start with uppercase
+                let is_exported = name.chars().next().is_some_and(|c| c.is_uppercase());
+                let visibility = if is_exported {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    fn_n.start_position().row + 1,
+                    fn_n.start_position().column + 1,
+                );
+
+                let parameters = params_node
+                    .map(|n| self.parse_go_params(n, source_bytes))
+                    .unwrap_or_default();
+
+                let return_type = return_node
+                    .and_then(|n| n.utf8_text(source_bytes).ok())
+                    .map(|t| TypeInfo::simple(t.trim()));
+
+                let mut sig = ApiSignature::function(name, location)
+                    .with_visibility(visibility)
+                    .with_params(parameters)
+                    .exported(is_exported);
+
+                if let Some(rt) = return_type {
+                    sig = sig.with_return_type(rt);
+                }
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for method declarations
+        let method_query = lang.query(
+            r#"
+            (method_declaration
+                receiver: (parameter_list) @receiver
+                name: (field_identifier) @method_name
+                parameters: (parameter_list) @params
+                result: (_)? @return_type
+            ) @method
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&method_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut method_name = None;
+            let mut params_node = None;
+            let mut return_node = None;
+            let mut method_node = None;
+
+            for capture in m.captures {
+                let name = method_query.capture_names()[capture.index as usize];
+                match name {
+                    "method_name" => {
+                        method_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "params" => {
+                        params_node = Some(capture.node);
+                    }
+                    "return_type" => {
+                        return_node = Some(capture.node);
+                    }
+                    "method" => {
+                        method_node = Some(capture.node);
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(m_node)) = (method_name, method_node) {
+                let is_exported = name.chars().next().is_some_and(|c| c.is_uppercase());
+                let visibility = if is_exported {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    m_node.start_position().row + 1,
+                    m_node.start_position().column + 1,
+                );
+
+                let parameters = params_node
+                    .map(|n| self.parse_go_params(n, source_bytes))
+                    .unwrap_or_default();
+
+                let return_type = return_node
+                    .and_then(|n| n.utf8_text(source_bytes).ok())
+                    .map(|t| TypeInfo::simple(t.trim()));
+
+                let mut sig = ApiSignature::method(name, location)
+                    .with_visibility(visibility)
+                    .with_params(parameters)
+                    .exported(is_exported);
+
+                if let Some(rt) = return_type {
+                    sig = sig.with_return_type(rt);
+                }
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for struct type declarations
+        let struct_query = lang.query(
+            r#"
+            (type_declaration
+                (type_spec
+                    name: (type_identifier) @struct_name
+                    type: (struct_type)
+                )
+            ) @struct
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&struct_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut struct_name = None;
+            let mut struct_node = None;
+
+            for capture in m.captures {
+                let name = struct_query.capture_names()[capture.index as usize];
+                match name {
+                    "struct_name" => {
+                        struct_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "struct" => {
+                        struct_node = Some(capture.node);
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(s_node)) = (struct_name, struct_node) {
+                let is_exported = name.chars().next().is_some_and(|c| c.is_uppercase());
+                let visibility = if is_exported {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    s_node.start_position().row + 1,
+                    s_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Struct, location)
+                    .with_visibility(visibility)
+                    .exported(is_exported);
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for interface type declarations
+        let iface_query = lang.query(
+            r#"
+            (type_declaration
+                (type_spec
+                    name: (type_identifier) @iface_name
+                    type: (interface_type)
+                )
+            ) @interface
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&iface_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut iface_name = None;
+            let mut iface_node = None;
+
+            for capture in m.captures {
+                let name = iface_query.capture_names()[capture.index as usize];
+                match name {
+                    "iface_name" => {
+                        iface_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "interface" => {
+                        iface_node = Some(capture.node);
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(i_node)) = (iface_name, iface_node) {
+                let is_exported = name.chars().next().is_some_and(|c| c.is_uppercase());
+                let visibility = if is_exported {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    i_node.start_position().row + 1,
+                    i_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Interface, location)
+                    .with_visibility(visibility)
+                    .exported(is_exported);
+
+                signatures.push(sig);
+            }
+        }
+
+        Ok(signatures)
+    }
+
+    fn parse_go_params(&self, params_node: tree_sitter::Node, source: &[u8]) -> Vec<Parameter> {
+        let mut params = Vec::new();
+
+        for i in 0..params_node.child_count() {
+            if let Some(child) = params_node.child(i as u32)
+                && child.kind() == "parameter_declaration"
+            {
+                let mut param_names = Vec::new();
+                let mut param_type = None;
+
+                for j in 0..child.child_count() {
+                    if let Some(sub) = child.child(j as u32) {
+                        match sub.kind() {
+                            "identifier" => {
+                                if let Ok(name) = sub.utf8_text(source) {
+                                    param_names.push(name.to_string());
+                                }
+                            }
+                            _ if sub.kind().contains("type") || sub.kind().ends_with("_type") => {
+                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                // Go allows multiple names with same type: `a, b int`
+                for name in param_names {
+                    let mut param = Parameter::new(name);
+                    if let Some(ref ty) = param_type {
+                        param = param.with_type(ty.clone());
+                    }
+                    params.push(param);
+                }
+            }
+        }
+
+        params
+    }
+
+    fn extract_java(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+        let tree = lang.parse(source)?;
+        let source_bytes = source.as_bytes();
+        let mut signatures = Vec::new();
+
+        // Query for class declarations
+        let class_query = lang.query(
+            r#"
+            (class_declaration
+                (modifiers)? @modifiers
+                name: (identifier) @class_name
+            ) @class
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&class_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut class_name = None;
+            let mut class_node = None;
+            let mut is_public = false;
+
+            for capture in m.captures {
+                let name = class_query.capture_names()[capture.index as usize];
+                match name {
+                    "class_name" => {
+                        class_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "class" => {
+                        class_node = Some(capture.node);
+                    }
+                    "modifiers" => {
+                        let mods = capture.node.utf8_text(source_bytes).unwrap_or("");
+                        is_public = mods.contains("public");
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(c_node)) = (class_name, class_node) {
+                let visibility = if is_public {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    c_node.start_position().row + 1,
+                    c_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Class, location)
+                    .with_visibility(visibility)
+                    .exported(is_public);
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for method declarations
+        let method_query = lang.query(
+            r#"
+            (method_declaration
+                (modifiers)? @modifiers
+                type: (_) @return_type
+                name: (identifier) @method_name
+                parameters: (formal_parameters) @params
+            ) @method
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&method_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut method_name = None;
+            let mut method_node = None;
+            let mut params_node = None;
+            let mut return_node = None;
+            let mut is_public = false;
+
+            for capture in m.captures {
+                let name = method_query.capture_names()[capture.index as usize];
+                match name {
+                    "method_name" => {
+                        method_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "method" => {
+                        method_node = Some(capture.node);
+                    }
+                    "params" => {
+                        params_node = Some(capture.node);
+                    }
+                    "return_type" => {
+                        return_node = Some(capture.node);
+                    }
+                    "modifiers" => {
+                        let mods = capture.node.utf8_text(source_bytes).unwrap_or("");
+                        is_public = mods.contains("public");
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(m_node)) = (method_name, method_node) {
+                let visibility = if is_public {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    m_node.start_position().row + 1,
+                    m_node.start_position().column + 1,
+                );
+
+                let parameters = params_node
+                    .map(|n| self.parse_java_params(n, source_bytes))
+                    .unwrap_or_default();
+
+                let return_type = return_node
+                    .and_then(|n| n.utf8_text(source_bytes).ok())
+                    .map(|t| TypeInfo::simple(t.trim()));
+
+                let mut sig = ApiSignature::method(name, location)
+                    .with_visibility(visibility)
+                    .with_params(parameters)
+                    .exported(is_public);
+
+                if let Some(rt) = return_type {
+                    sig = sig.with_return_type(rt);
+                }
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for interface declarations
+        let iface_query = lang.query(
+            r#"
+            (interface_declaration
+                (modifiers)? @modifiers
+                name: (identifier) @iface_name
+            ) @interface
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&iface_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut iface_name = None;
+            let mut iface_node = None;
+            let mut is_public = false;
+
+            for capture in m.captures {
+                let name = iface_query.capture_names()[capture.index as usize];
+                match name {
+                    "iface_name" => {
+                        iface_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "interface" => {
+                        iface_node = Some(capture.node);
+                    }
+                    "modifiers" => {
+                        let mods = capture.node.utf8_text(source_bytes).unwrap_or("");
+                        is_public = mods.contains("public");
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(i_node)) = (iface_name, iface_node) {
+                let visibility = if is_public {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    i_node.start_position().row + 1,
+                    i_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Interface, location)
+                    .with_visibility(visibility)
+                    .exported(is_public);
+
+                signatures.push(sig);
+            }
+        }
+
+        Ok(signatures)
+    }
+
+    fn parse_java_params(&self, params_node: tree_sitter::Node, source: &[u8]) -> Vec<Parameter> {
+        let mut params = Vec::new();
+
+        for i in 0..params_node.child_count() {
+            if let Some(child) = params_node.child(i as u32)
+                && child.kind() == "formal_parameter"
+            {
+                let mut param_name = None;
+                let mut param_type = None;
+
+                for j in 0..child.child_count() {
+                    if let Some(sub) = child.child(j as u32) {
+                        match sub.kind() {
+                            "identifier" => {
+                                param_name = sub.utf8_text(source).ok().map(String::from);
+                            }
+                            _ if sub.kind().contains("type") => {
+                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                if let Some(name) = param_name {
+                    let mut param = Parameter::new(name);
+                    if let Some(ty) = param_type {
+                        param = param.with_type(ty);
+                    }
+                    params.push(param);
+                }
+            }
+        }
+
+        params
+    }
+
+    fn extract_csharp(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+        let tree = lang.parse(source)?;
+        let source_bytes = source.as_bytes();
+        let mut signatures = Vec::new();
+
+        // Query for class declarations
+        let class_query = lang.query(
+            r#"
+            (class_declaration
+                (modifier)* @modifiers
+                name: (identifier) @class_name
+            ) @class
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&class_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut class_name = None;
+            let mut class_node = None;
+            let mut is_public = false;
+
+            for capture in m.captures {
+                let name = class_query.capture_names()[capture.index as usize];
+                match name {
+                    "class_name" => {
+                        class_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "class" => {
+                        class_node = Some(capture.node);
+                    }
+                    "modifiers" => {
+                        let mods = capture.node.utf8_text(source_bytes).unwrap_or("");
+                        if mods == "public" {
+                            is_public = true;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(c_node)) = (class_name, class_node) {
+                let visibility = if is_public {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    c_node.start_position().row + 1,
+                    c_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Class, location)
+                    .with_visibility(visibility)
+                    .exported(is_public);
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for method declarations
+        let method_query = lang.query(
+            r#"
+            (method_declaration
+                (modifier)* @modifiers
+                (predefined_type)? @return_type
+                name: (identifier) @method_name
+                (parameter_list) @params
+            ) @method
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&method_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut method_name = None;
+            let mut method_node = None;
+            let mut params_node = None;
+            let mut return_node = None;
+            let mut is_public = false;
+
+            for capture in m.captures {
+                let name = method_query.capture_names()[capture.index as usize];
+                match name {
+                    "method_name" => {
+                        method_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "method" => {
+                        method_node = Some(capture.node);
+                    }
+                    "params" => {
+                        params_node = Some(capture.node);
+                    }
+                    "return_type" => {
+                        return_node = Some(capture.node);
+                    }
+                    "modifiers" => {
+                        let mods = capture.node.utf8_text(source_bytes).unwrap_or("");
+                        if mods == "public" {
+                            is_public = true;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(m_node)) = (method_name, method_node) {
+                let visibility = if is_public {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    m_node.start_position().row + 1,
+                    m_node.start_position().column + 1,
+                );
+
+                let parameters = params_node
+                    .map(|n| self.parse_csharp_params(n, source_bytes))
+                    .unwrap_or_default();
+
+                let return_type = return_node
+                    .and_then(|n| n.utf8_text(source_bytes).ok())
+                    .map(|t| TypeInfo::simple(t.trim()));
+
+                let mut sig = ApiSignature::method(name, location)
+                    .with_visibility(visibility)
+                    .with_params(parameters)
+                    .exported(is_public);
+
+                if let Some(rt) = return_type {
+                    sig = sig.with_return_type(rt);
+                }
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for interface declarations
+        let iface_query = lang.query(
+            r#"
+            (interface_declaration
+                (modifier)* @modifiers
+                name: (identifier) @iface_name
+            ) @interface
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&iface_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut iface_name = None;
+            let mut iface_node = None;
+            let mut is_public = false;
+
+            for capture in m.captures {
+                let name = iface_query.capture_names()[capture.index as usize];
+                match name {
+                    "iface_name" => {
+                        iface_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "interface" => {
+                        iface_node = Some(capture.node);
+                    }
+                    "modifiers" => {
+                        let mods = capture.node.utf8_text(source_bytes).unwrap_or("");
+                        if mods == "public" {
+                            is_public = true;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(i_node)) = (iface_name, iface_node) {
+                let visibility = if is_public {
+                    Visibility::Public
+                } else {
+                    Visibility::Private
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    i_node.start_position().row + 1,
+                    i_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Interface, location)
+                    .with_visibility(visibility)
+                    .exported(is_public);
+
+                signatures.push(sig);
+            }
+        }
+
+        Ok(signatures)
+    }
+
+    fn parse_csharp_params(&self, params_node: tree_sitter::Node, source: &[u8]) -> Vec<Parameter> {
+        let mut params = Vec::new();
+
+        for i in 0..params_node.child_count() {
+            if let Some(child) = params_node.child(i as u32)
+                && child.kind() == "parameter"
+            {
+                let mut param_name = None;
+                let mut param_type = None;
+
+                for j in 0..child.child_count() {
+                    if let Some(sub) = child.child(j as u32) {
+                        match sub.kind() {
+                            "identifier" => {
+                                param_name = sub.utf8_text(source).ok().map(String::from);
+                            }
+                            _ if sub.kind().contains("type") || sub.kind() == "predefined_type" => {
+                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+
+                if let Some(name) = param_name {
+                    let mut param = Parameter::new(name);
+                    if let Some(ty) = param_type {
+                        param = param.with_type(ty);
+                    }
+                    params.push(param);
+                }
+            }
+        }
+
+        params
+    }
+
+    fn extract_ruby(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+        let tree = lang.parse(source)?;
+        let source_bytes = source.as_bytes();
+        let mut signatures = Vec::new();
+
+        // Query for method definitions
+        let method_query = lang.query(
+            r#"
+            (method
+                name: (identifier) @method_name
+                parameters: (method_parameters)? @params
+            ) @method
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&method_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut method_name = None;
+            let mut method_node = None;
+            let mut params_node = None;
+
+            for capture in m.captures {
+                let name = method_query.capture_names()[capture.index as usize];
+                match name {
+                    "method_name" => {
+                        method_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "method" => {
+                        method_node = Some(capture.node);
+                    }
+                    "params" => {
+                        params_node = Some(capture.node);
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(m_node)) = (method_name, method_node) {
+                // In Ruby, methods starting with _ are conventionally private
+                let is_private = name.starts_with('_');
+                let visibility = if is_private {
+                    Visibility::Private
+                } else {
+                    Visibility::Public
+                };
+
+                let location = SourceLocation::new(
+                    path,
+                    m_node.start_position().row + 1,
+                    m_node.start_position().column + 1,
+                );
+
+                let parameters = params_node
+                    .map(|n| self.parse_ruby_params(n, source_bytes))
+                    .unwrap_or_default();
+
+                let sig = ApiSignature::method(name, location)
+                    .with_visibility(visibility)
+                    .with_params(parameters)
+                    .exported(!is_private);
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for class definitions
+        let class_query = lang.query(
+            r#"
+            (class
+                name: (constant) @class_name
+            ) @class
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&class_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut class_name = None;
+            let mut class_node = None;
+
+            for capture in m.captures {
+                let name = class_query.capture_names()[capture.index as usize];
+                match name {
+                    "class_name" => {
+                        class_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "class" => {
+                        class_node = Some(capture.node);
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(c_node)) = (class_name, class_node) {
+                let location = SourceLocation::new(
+                    path,
+                    c_node.start_position().row + 1,
+                    c_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Class, location)
+                    .with_visibility(Visibility::Public)
+                    .exported(true);
+
+                signatures.push(sig);
+            }
+        }
+
+        // Query for module definitions
+        let module_query = lang.query(
+            r#"
+            (module
+                name: (constant) @module_name
+            ) @module
+            "#,
+        )?;
+
+        let mut cursor = QueryCursor::new();
+        let mut matches = cursor.matches(&module_query, tree.root_node(), source_bytes);
+
+        while let Some(m) = matches.next() {
+            let mut module_name = None;
+            let mut module_node = None;
+
+            for capture in m.captures {
+                let name = module_query.capture_names()[capture.index as usize];
+                match name {
+                    "module_name" => {
+                        module_name = capture.node.utf8_text(source_bytes).ok();
+                    }
+                    "module" => {
+                        module_node = Some(capture.node);
+                    }
+                    _ => {}
+                }
+            }
+
+            if let (Some(name), Some(m_node)) = (module_name, module_node) {
+                let location = SourceLocation::new(
+                    path,
+                    m_node.start_position().row + 1,
+                    m_node.start_position().column + 1,
+                );
+
+                let sig = ApiSignature::type_def(name, ApiType::Module, location)
+                    .with_visibility(Visibility::Public)
+                    .exported(true);
+
+                signatures.push(sig);
+            }
+        }
+
+        Ok(signatures)
+    }
+
+    fn parse_ruby_params(&self, params_node: tree_sitter::Node, source: &[u8]) -> Vec<Parameter> {
+        let mut params = Vec::new();
+
+        for i in 0..params_node.child_count() {
+            if let Some(child) = params_node.child(i as u32) {
+                match child.kind() {
+                    "identifier" => {
+                        if let Ok(name) = child.utf8_text(source) {
+                            params.push(Parameter::new(name));
+                        }
+                    }
+                    "optional_parameter" => {
+                        if let Some(ident) = child.child(0)
+                            && let Ok(name) = ident.utf8_text(source)
+                        {
+                            params.push(Parameter::new(name).with_default());
+                        }
+                    }
+                    "splat_parameter" | "hash_splat_parameter" => {
+                        if let Some(ident) = child.child(1)
+                            && let Ok(name) = ident.utf8_text(source)
+                        {
+                            params.push(Parameter::new(name).variadic());
+                        }
+                    }
+                    "keyword_parameter" => {
+                        if let Some(ident) = child.child(0)
+                            && let Ok(name) = ident.utf8_text(source)
+                        {
+                            params.push(Parameter::new(name));
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        params
+    }
 }
 
 #[cfg(test)]
@@ -1164,5 +2150,156 @@ class UserService:
         };
 
         assert_eq!(deleted.path(), Path::new("deleted.rs"));
+    }
+
+    #[test]
+    fn test_extract_go_functions() {
+        let extractor = ApiExtractor::new();
+        let source = r#"
+package main
+
+func Hello(name string) string {
+    return "Hello, " + name
+}
+
+func privateFunc() {
+    fmt.Println("private")
+}
+
+type User struct {
+    ID   int
+    Name string
+}
+
+type userService interface {
+    GetUser(id int) User
+}
+"#;
+
+        let sigs = extractor.extract(Path::new("test.go"), source).unwrap();
+
+        let hello = sigs.iter().find(|s| s.name == "Hello").unwrap();
+        assert!(hello.is_exported);
+        assert_eq!(hello.kind, ApiType::Function);
+
+        let private_fn = sigs.iter().find(|s| s.name == "privateFunc").unwrap();
+        assert!(!private_fn.is_exported);
+
+        let user = sigs.iter().find(|s| s.name == "User").unwrap();
+        assert!(user.is_exported);
+        assert_eq!(user.kind, ApiType::Struct);
+
+        let user_service = sigs.iter().find(|s| s.name == "userService").unwrap();
+        assert!(!user_service.is_exported);
+        assert_eq!(user_service.kind, ApiType::Interface);
+    }
+
+    #[test]
+    fn test_extract_java_classes() {
+        let extractor = ApiExtractor::new();
+        let source = r#"
+public class UserService {
+    public String getUser(int id) {
+        return "user";
+    }
+
+    private void helper() {
+        System.out.println("helper");
+    }
+}
+
+interface Repository {
+    void save(Object obj);
+}
+"#;
+
+        let sigs = extractor.extract(Path::new("UserService.java"), source).unwrap();
+
+        let user_service = sigs.iter().find(|s| s.name == "UserService").unwrap();
+        assert!(user_service.is_exported);
+        assert_eq!(user_service.kind, ApiType::Class);
+
+        let get_user = sigs.iter().find(|s| s.name == "getUser").unwrap();
+        assert!(get_user.is_exported);
+        assert_eq!(get_user.kind, ApiType::Method);
+
+        let helper = sigs.iter().find(|s| s.name == "helper").unwrap();
+        assert!(!helper.is_exported);
+
+        let repository = sigs.iter().find(|s| s.name == "Repository").unwrap();
+        assert!(!repository.is_exported);
+        assert_eq!(repository.kind, ApiType::Interface);
+    }
+
+    #[test]
+    fn test_extract_csharp_classes() {
+        let extractor = ApiExtractor::new();
+        let source = r#"
+public class Program {
+    public static void Main(string[] args) {
+        Console.WriteLine("Hello");
+    }
+
+    private void Helper() {
+        // helper method
+    }
+}
+
+interface IRepository {
+    void Save(object obj);
+}
+"#;
+
+        let sigs = extractor.extract(Path::new("Program.cs"), source).unwrap();
+
+        let program = sigs.iter().find(|s| s.name == "Program").unwrap();
+        assert!(program.is_exported);
+        assert_eq!(program.kind, ApiType::Class);
+
+        let main = sigs.iter().find(|s| s.name == "Main").unwrap();
+        assert!(main.is_exported);
+        assert_eq!(main.kind, ApiType::Method);
+
+        let helper = sigs.iter().find(|s| s.name == "Helper").unwrap();
+        assert!(!helper.is_exported);
+
+        let repository = sigs.iter().find(|s| s.name == "IRepository").unwrap();
+        assert!(!repository.is_exported);
+        assert_eq!(repository.kind, ApiType::Interface);
+    }
+
+    #[test]
+    fn test_extract_ruby_classes() {
+        let extractor = ApiExtractor::new();
+        let source = r#"
+module MyModule
+  class UserService
+    def get_user(id)
+      @users[id]
+    end
+
+    def _private_helper
+      puts "helper"
+    end
+  end
+end
+"#;
+
+        let sigs = extractor.extract(Path::new("user_service.rb"), source).unwrap();
+
+        let my_module = sigs.iter().find(|s| s.name == "MyModule").unwrap();
+        assert!(my_module.is_exported);
+        assert_eq!(my_module.kind, ApiType::Module);
+
+        let user_service = sigs.iter().find(|s| s.name == "UserService").unwrap();
+        assert!(user_service.is_exported);
+        assert_eq!(user_service.kind, ApiType::Class);
+
+        let get_user = sigs.iter().find(|s| s.name == "get_user").unwrap();
+        assert!(get_user.is_exported);
+        assert_eq!(get_user.kind, ApiType::Method);
+
+        let private_helper = sigs.iter().find(|s| s.name == "_private_helper").unwrap();
+        assert!(!private_helper.is_exported);
     }
 }

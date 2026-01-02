@@ -48,6 +48,21 @@ impl ApiSignature {
         }
     }
 
+    /// Create a new method signature (member function of a class/struct).
+    pub fn method(name: impl Into<String>, location: SourceLocation) -> Self {
+        Self {
+            name: name.into(),
+            kind: ApiType::Method,
+            visibility: Visibility::Public,
+            parameters: Vec::new(),
+            return_type: None,
+            generic_params: Vec::new(),
+            location,
+            module_path: None,
+            is_exported: true,
+        }
+    }
+
     /// Create a new type signature (struct, class, interface).
     pub fn type_def(name: impl Into<String>, kind: ApiType, location: SourceLocation) -> Self {
         Self {

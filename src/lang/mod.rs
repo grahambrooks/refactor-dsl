@@ -1,10 +1,18 @@
 //! Language abstraction for multi-language parsing and refactoring.
 
+mod csharp;
+mod go;
+mod java;
 mod python;
+mod ruby;
 mod rust;
 mod typescript;
 
+pub use csharp::CSharp;
+pub use go::Go;
+pub use java::Java;
 pub use python::Python;
+pub use ruby::Ruby;
 pub use rust::Rust;
 pub use typescript::TypeScript;
 
@@ -67,6 +75,10 @@ impl LanguageRegistry {
         registry.register(Box::new(Rust));
         registry.register(Box::new(TypeScript));
         registry.register(Box::new(Python));
+        registry.register(Box::new(Go));
+        registry.register(Box::new(Java));
+        registry.register(Box::new(CSharp));
+        registry.register(Box::new(Ruby));
         registry
     }
 
@@ -177,7 +189,7 @@ mod tests {
     #[test]
     fn test_registry_new() {
         let registry = LanguageRegistry::new();
-        assert_eq!(registry.all().len(), 3);
+        assert_eq!(registry.all().len(), 7);
     }
 
     #[test]
@@ -225,5 +237,100 @@ mod tests {
 
         let no_ext = registry.detect(Path::new("Makefile"));
         assert!(no_ext.is_none());
+    }
+
+    #[test]
+    fn test_go_language() {
+        let go = Go;
+        assert_eq!(go.name(), "go");
+        assert!(go.extensions().contains(&"go"));
+        assert!(go.matches_extension("go"));
+    }
+
+    #[test]
+    fn test_go_parsing() {
+        let go = Go;
+        let source = "package main\n\nfunc main() {\n\tfmt.Println(\"Hello\")\n}";
+        let tree = go.parse(source).expect("Failed to parse");
+        assert!(!tree.root_node().has_error());
+    }
+
+    #[test]
+    fn test_java_language() {
+        let java = Java;
+        assert_eq!(java.name(), "java");
+        assert!(java.extensions().contains(&"java"));
+        assert!(java.matches_extension("java"));
+    }
+
+    #[test]
+    fn test_java_parsing() {
+        let java = Java;
+        let source = "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello\");\n    }\n}";
+        let tree = java.parse(source).expect("Failed to parse");
+        assert!(!tree.root_node().has_error());
+    }
+
+    #[test]
+    fn test_csharp_language() {
+        let csharp = CSharp;
+        assert_eq!(csharp.name(), "csharp");
+        assert!(csharp.extensions().contains(&"cs"));
+        assert!(csharp.matches_extension("cs"));
+        assert!(csharp.matches_extension("csx"));
+    }
+
+    #[test]
+    fn test_csharp_parsing() {
+        let csharp = CSharp;
+        let source = "public class Program {\n    public static void Main() {\n        Console.WriteLine(\"Hello\");\n    }\n}";
+        let tree = csharp.parse(source).expect("Failed to parse");
+        assert!(!tree.root_node().has_error());
+    }
+
+    #[test]
+    fn test_ruby_language() {
+        let ruby = Ruby;
+        assert_eq!(ruby.name(), "ruby");
+        assert!(ruby.extensions().contains(&"rb"));
+        assert!(ruby.matches_extension("rb"));
+        assert!(ruby.matches_extension("rake"));
+        assert!(ruby.matches_extension("gemspec"));
+    }
+
+    #[test]
+    fn test_ruby_parsing() {
+        let ruby = Ruby;
+        let source = "def hello\n  puts 'Hello'\nend";
+        let tree = ruby.parse(source).expect("Failed to parse");
+        assert!(!tree.root_node().has_error());
+    }
+
+    #[test]
+    fn test_registry_find_go() {
+        let registry = LanguageRegistry::new();
+        assert!(registry.by_name("go").is_some());
+        assert!(registry.by_extension("go").is_some());
+    }
+
+    #[test]
+    fn test_registry_find_java() {
+        let registry = LanguageRegistry::new();
+        assert!(registry.by_name("java").is_some());
+        assert!(registry.by_extension("java").is_some());
+    }
+
+    #[test]
+    fn test_registry_find_csharp() {
+        let registry = LanguageRegistry::new();
+        assert!(registry.by_name("csharp").is_some());
+        assert!(registry.by_extension("cs").is_some());
+    }
+
+    #[test]
+    fn test_registry_find_ruby() {
+        let registry = LanguageRegistry::new();
+        assert!(registry.by_name("ruby").is_some());
+        assert!(registry.by_extension("rb").is_some());
     }
 }

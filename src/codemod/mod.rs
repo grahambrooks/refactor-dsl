@@ -30,10 +30,17 @@
 //! # Ok::<(), refactor_dsl::error::RefactorError>(())
 //! ```
 
+pub mod discovery;
 mod executor;
 mod filter;
 mod upgrade;
 
+pub use discovery::{
+    AdvancedRepoFilter, ComparisonOp, DependencyFilter, DependencyInfo, FilterPresets, Framework,
+    FrameworkCategory, FrameworkFilter, FrameworkInfo, LanguageFilter, LanguageInfo, MatchMode,
+    MetricCondition, MetricFilter, PackageManager, ProgrammingLanguage, RepositoryInfo,
+    RepositoryMetrics, VersionConstraint,
+};
 pub use executor::{CodemodExecutor, CodemodResult, CodemodSummary, RepoResult, RepoStatus};
 pub use filter::RepoFilter;
 pub use upgrade::{
