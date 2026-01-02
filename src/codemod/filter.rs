@@ -4,6 +4,9 @@ use crate::codemod::RepoInfo;
 use crate::error::Result;
 use regex::Regex;
 
+/// Type alias for custom repository filter predicates.
+type RepoFilterPredicate = Box<dyn Fn(&RepoInfo) -> bool + Send + Sync>;
+
 /// Filter for selecting which repositories to process.
 ///
 /// Provides a fluent API for building predicates that filter repositories
@@ -16,7 +19,7 @@ pub struct RepoFilter {
     exclude_archived: bool,
     exclude_forks: bool,
     name_patterns: Vec<String>,
-    custom_predicates: Vec<Box<dyn Fn(&RepoInfo) -> bool + Send + Sync>>,
+    custom_predicates: Vec<RepoFilterPredicate>,
 }
 
 impl RepoFilter {

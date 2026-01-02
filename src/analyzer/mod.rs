@@ -129,6 +129,7 @@ pub struct LibraryAnalyzer {
     repo_path: PathBuf,
     repo: Repository,
     extensions: Vec<String>,
+    #[allow(dead_code)]
     registry: LanguageRegistry,
     rename_threshold: f64,
     include_private: bool,
@@ -294,8 +295,7 @@ impl LibraryAnalyzer {
 fn sanitize_version(version: &str) -> String {
     version
         .trim_start_matches('v')
-        .replace('.', "-")
-        .replace('/', "-")
+        .replace(['.', '/'], "-")
 }
 
 #[cfg(test)]

@@ -1,39 +1,66 @@
-//! GitHub API client.
+//! GitHub API client using octocrab.
 
-use reqwest::blocking::Client;
-use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, USER_AGENT};
+use octocrab::Octocrab;
+use std::sync::Arc;
+use tokio::runtime::Runtime;
 
 use crate::error::{RefactorError, Result};
 
 /// Client for interacting with the GitHub API.
+///
+/// This client wraps the octocrab library and provides a synchronous API
+/// for compatibility with the rest of the codebase.
 #[derive(Clone)]
 pub struct GitHubClient {
     pub(crate) token: String,
     pub(crate) base_url: String,
-    pub(crate) client: Client,
+    pub(crate) octocrab: Arc<Octocrab>,
+    pub(crate) runtime: Arc<Runtime>,
 }
 
 impl GitHubClient {
     /// Create a new GitHub client with the given token.
     pub fn new(token: impl Into<String>) -> Self {
+        let token = token.into();
+        let octocrab = Octocrab::builder()
+            .personal_token(token.clone())
+            .build()
+            .expect("Failed to build octocrab client");
+
+        let runtime = Runtime::new().expect("Failed to create tokio runtime");
+
         Self {
-            token: token.into(),
+            token,
             base_url: "https://api.github.com".into(),
-            client: Client::new(),
+            octocrab: Arc::new(octocrab),
+            runtime: Arc::new(runtime),
         }
     }
 
     /// Create a client for GitHub Enterprise with a custom base URL.
     pub fn with_enterprise(token: impl Into<String>, base_url: impl Into<String>) -> Self {
+        let token = token.into();
         let mut url = base_url.into();
+
         // Remove trailing slash if present
         if url.ends_with('/') {
             url.pop();
         }
+
+        let octocrab = Octocrab::builder()
+            .personal_token(token.clone())
+            .base_uri(&url)
+            .expect("Failed to set base URI")
+            .build()
+            .expect("Failed to build octocrab client");
+
+        let runtime = Runtime::new().expect("Failed to create tokio runtime");
+
         Self {
-            token: token.into(),
+            token,
             base_url: url,
-            client: Client::new(),
+            octocrab: Arc::new(octocrab),
+            runtime: Arc::new(runtime),
         }
     }
 
@@ -45,78 +72,6 @@ impl GitHubClient {
         Ok(Self::new(token))
     }
 
-    /// Get the default headers for API requests.
-    pub(crate) fn headers(&self) -> HeaderMap {
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&format!("Bearer {}", self.token))
-                .expect("Invalid token format"),
-        );
-        headers.insert(
-            ACCEPT,
-            HeaderValue::from_static("application/vnd.github+json"),
-        );
-        headers.insert(
-            USER_AGENT,
-            HeaderValue::from_static("refactor-dsl"),
-        );
-        headers.insert(
-            "X-GitHub-Api-Version",
-            HeaderValue::from_static("2022-11-28"),
-        );
-        headers
-    }
-
-    /// Make a GET request to the GitHub API.
-    pub(crate) fn get<T: serde::de::DeserializeOwned>(&self, endpoint: &str) -> Result<T> {
-        let url = format!("{}{}", self.base_url, endpoint);
-        let response = self
-            .client
-            .get(&url)
-            .headers(self.headers())
-            .send()?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().unwrap_or_default();
-            return Err(RefactorError::GitHub {
-                message: format!("API request failed ({}): {}", status, body),
-            });
-        }
-
-        response.json().map_err(|e| RefactorError::GitHub {
-            message: format!("Failed to parse response: {}", e),
-        })
-    }
-
-    /// Make a POST request to the GitHub API.
-    pub(crate) fn post<T: serde::de::DeserializeOwned, B: serde::Serialize>(
-        &self,
-        endpoint: &str,
-        body: &B,
-    ) -> Result<T> {
-        let url = format!("{}{}", self.base_url, endpoint);
-        let response = self
-            .client
-            .post(&url)
-            .headers(self.headers())
-            .json(body)
-            .send()?;
-
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().unwrap_or_default();
-            return Err(RefactorError::GitHub {
-                message: format!("API request failed ({}): {}", status, body),
-            });
-        }
-
-        response.json().map_err(|e| RefactorError::GitHub {
-            message: format!("Failed to parse response: {}", e),
-        })
-    }
-
     /// Get the token for use in clone URLs.
     pub fn token(&self) -> &str {
         &self.token
@@ -125,5 +80,23 @@ impl GitHubClient {
     /// Get the base URL.
     pub fn base_url(&self) -> &str {
         &self.base_url
+    }
+
+    /// Get a reference to the underlying octocrab client.
+    pub fn octocrab(&self) -> &Octocrab {
+        &self.octocrab
+    }
+
+    /// Get a reference to the tokio runtime.
+    pub fn runtime(&self) -> &Runtime {
+        &self.runtime
+    }
+
+    /// Run an async operation synchronously.
+    pub(crate) fn block_on<F, T>(&self, future: F) -> T
+    where
+        F: std::future::Future<Output = T>,
+    {
+        self.runtime.block_on(future)
     }
 }

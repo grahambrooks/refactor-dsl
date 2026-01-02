@@ -1,11 +1,11 @@
-//! Pull request operations.
+//! Pull request operations using octocrab.
 
 use crate::error::{RefactorError, Result};
 use crate::github::GitHubClient;
-use serde::{Deserialize, Serialize};
+use octocrab::models::pulls::PullRequest as OctocrabPR;
 
 /// A pull request on GitHub.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct PullRequest {
     pub id: u64,
     pub number: u64,
@@ -19,24 +19,44 @@ pub struct PullRequest {
     pub merged: bool,
 }
 
+impl From<OctocrabPR> for PullRequest {
+    fn from(pr: OctocrabPR) -> Self {
+        Self {
+            id: pr.id.0,
+            number: pr.number,
+            html_url: pr.html_url.map(|u| u.to_string()).unwrap_or_default(),
+            state: pr.state.map(|s| format!("{:?}", s).to_lowercase()).unwrap_or_default(),
+            title: pr.title.unwrap_or_default(),
+            body: pr.body,
+            head: PullRequestRef {
+                ref_name: pr.head.ref_field,
+                sha: pr.head.sha,
+            },
+            base: PullRequestRef {
+                ref_name: pr.base.ref_field,
+                sha: pr.base.sha,
+            },
+            draft: pr.draft.unwrap_or(false),
+            merged: pr.merged.unwrap_or(false),
+        }
+    }
+}
+
 /// A reference (branch) in a pull request.
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct PullRequestRef {
-    #[serde(rename = "ref")]
     pub ref_name: String,
     pub sha: String,
 }
 
 /// Request body for creating a pull request.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone)]
 pub struct CreatePullRequest {
     pub title: String,
     pub body: String,
     pub head: String,
     pub base: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub draft: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub maintainer_can_modify: Option<bool>,
 }
 
@@ -98,33 +118,80 @@ impl PullRequestOps for GitHubClient {
         repo: &str,
         pr: CreatePullRequest,
     ) -> Result<PullRequest> {
-        let endpoint = format!("/repos/{}/{}/pulls", owner, repo);
-        self.post(&endpoint, &pr).map_err(|e| {
-            // Provide more context for common errors
-            if let RefactorError::GitHub { message } = &e {
-                if message.contains("422") {
-                    return RefactorError::PullRequestError {
+        let octocrab = self.octocrab.clone();
+        let owner = owner.to_string();
+        let repo = repo.to_string();
+
+        self.block_on(async move {
+            let pulls = octocrab.pulls(&owner, &repo);
+            let mut builder = pulls.create(&pr.title, &pr.head, &pr.base);
+            builder = builder.body(&pr.body);
+
+            if let Some(true) = pr.draft {
+                builder = builder.draft(true);
+            }
+
+            if let Some(true) = pr.maintainer_can_modify {
+                builder = builder.maintainer_can_modify(true);
+            }
+
+            let result = builder.send().await.map_err(|e| {
+                let msg = e.to_string();
+                if msg.contains("422") || msg.contains("Validation Failed") {
+                    RefactorError::PullRequestError {
                         message: format!(
                             "Failed to create PR (branch may not exist or PR already exists): {}",
-                            message
+                            msg
                         ),
-                    };
+                    }
+                } else {
+                    RefactorError::PullRequestError {
+                        message: format!("Failed to create PR: {}", msg),
+                    }
                 }
-            }
-            RefactorError::PullRequestError {
-                message: format!("Failed to create PR: {}", e),
-            }
+            })?;
+
+            Ok(PullRequest::from(result))
         })
     }
 
     fn list_pull_requests(&self, owner: &str, repo: &str) -> Result<Vec<PullRequest>> {
-        let endpoint = format!("/repos/{}/{}/pulls?state=open&per_page=100", owner, repo);
-        self.get(&endpoint)
+        let octocrab = self.octocrab.clone();
+        let owner = owner.to_string();
+        let repo = repo.to_string();
+
+        self.block_on(async move {
+            let prs = octocrab
+                .pulls(&owner, &repo)
+                .list()
+                .state(octocrab::params::State::Open)
+                .per_page(100)
+                .send()
+                .await
+                .map_err(|e| RefactorError::GitHub {
+                    message: format!("Failed to list pull requests: {}", e),
+                })?;
+
+            Ok(prs.items.into_iter().map(PullRequest::from).collect())
+        })
     }
 
     fn get_pull_request(&self, owner: &str, repo: &str, number: u64) -> Result<PullRequest> {
-        let endpoint = format!("/repos/{}/{}/pulls/{}", owner, repo, number);
-        self.get(&endpoint)
+        let octocrab = self.octocrab.clone();
+        let owner = owner.to_string();
+        let repo = repo.to_string();
+
+        self.block_on(async move {
+            let pr = octocrab
+                .pulls(&owner, &repo)
+                .get(number)
+                .await
+                .map_err(|e| RefactorError::GitHub {
+                    message: format!("Failed to get pull request #{}: {}", number, e),
+                })?;
+
+            Ok(PullRequest::from(pr))
+        })
     }
 
     fn pull_request_exists(&self, owner: &str, repo: &str, head_branch: &str) -> Result<bool> {
@@ -134,6 +201,7 @@ impl PullRequestOps for GitHubClient {
 }
 
 /// Builder for creating pull requests with a fluent API.
+#[allow(dead_code)]
 pub struct PullRequestBuilder<'a> {
     client: &'a GitHubClient,
     owner: String,
@@ -145,6 +213,7 @@ pub struct PullRequestBuilder<'a> {
     draft: bool,
 }
 
+#[allow(dead_code)]
 impl<'a> PullRequestBuilder<'a> {
     /// Create a new pull request builder.
     pub fn new(

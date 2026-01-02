@@ -44,7 +44,7 @@ pub use upgrade::{
 use crate::error::{RefactorError, Result};
 use crate::git::GitAuth;
 use crate::github::{GitHubClient, GitHubRepo, RepoOps};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Information about a repository being processed.
 #[derive(Debug, Clone)]
@@ -73,7 +73,7 @@ impl From<&GitHubRepo> for RepoInfo {
 /// Source for repositories (trait object for different sources).
 pub trait RepositorySource: Send + Sync {
     /// Get the list of repositories, cloning them to the workspace if needed.
-    fn get_repositories(&self, workspace: &PathBuf) -> Result<Vec<RepoInfo>>;
+    fn get_repositories(&self, workspace: &Path) -> Result<Vec<RepoInfo>>;
 
     /// Get the GitHub client if this is a GitHub source.
     fn github_client(&self) -> Option<&GitHubClient> {
@@ -88,7 +88,7 @@ struct GitHubOrgSource {
 }
 
 impl RepositorySource for GitHubOrgSource {
-    fn get_repositories(&self, workspace: &PathBuf) -> Result<Vec<RepoInfo>> {
+    fn get_repositories(&self, workspace: &Path) -> Result<Vec<RepoInfo>> {
         use crate::github::CloneOps;
 
         let repos = self.client.list_org_repos(&self.org)?;
@@ -115,7 +115,7 @@ struct LocalDirSource {
 }
 
 impl RepositorySource for LocalDirSource {
-    fn get_repositories(&self, _workspace: &PathBuf) -> Result<Vec<RepoInfo>> {
+    fn get_repositories(&self, _workspace: &Path) -> Result<Vec<RepoInfo>> {
         let mut repos = Vec::new();
 
         for entry in std::fs::read_dir(&self.parent_dir)? {
@@ -153,7 +153,7 @@ struct ExplicitPathSource {
 }
 
 impl RepositorySource for ExplicitPathSource {
-    fn get_repositories(&self, _workspace: &PathBuf) -> Result<Vec<RepoInfo>> {
+    fn get_repositories(&self, _workspace: &Path) -> Result<Vec<RepoInfo>> {
         let mut repos = Vec::new();
 
         for path in &self.paths {

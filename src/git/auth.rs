@@ -4,7 +4,7 @@ use crate::error::{RefactorError, Result};
 use std::path::PathBuf;
 
 /// Authentication method for git remote operations.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum GitAuth {
     /// SSH key authentication.
     SshKey {
@@ -16,6 +16,7 @@ pub enum GitAuth {
     /// Use system credential helper.
     CredentialHelper,
     /// No authentication (public repos only).
+    #[default]
     None,
 }
 
@@ -99,8 +100,3 @@ impl GitAuth {
     }
 }
 
-impl Default for GitAuth {
-    fn default() -> Self {
-        Self::None
-    }
-}

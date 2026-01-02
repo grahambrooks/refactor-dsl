@@ -199,42 +199,42 @@ impl CodemodExecutor {
         }
 
         // Push if enabled
-        if self.config.push_enabled {
-            if let Some(branch) = &result.branch_created {
-                if let Err(e) = git.push_with_upstream("origin", branch) {
-                    result.errors.push(format!("Push failed: {}", e));
-                } else {
-                    result.pushed = true;
-                }
+        if self.config.push_enabled
+            && let Some(branch) = &result.branch_created
+        {
+            if let Err(e) = git.push_with_upstream("origin", branch) {
+                result.errors.push(format!("Push failed: {}", e));
+            } else {
+                result.pushed = true;
             }
         }
 
         // Create PR if enabled
-        if self.config.create_pr_enabled && result.pushed {
-            if let Some(client) = self.config.source.github_client() {
-                if let (Some(title), Some(body)) = (&self.config.pr_title, &self.config.pr_body) {
-                    let title = self.expand_pattern(title, repo);
-                    let body = self.expand_pattern(body, repo);
-                    let head = result.branch_created.as_ref().unwrap();
+        if self.config.create_pr_enabled
+            && result.pushed
+            && let Some(client) = self.config.source.github_client()
+            && let (Some(title), Some(body)) = (&self.config.pr_title, &self.config.pr_body)
+        {
+            let title = self.expand_pattern(title, repo);
+            let body = self.expand_pattern(body, repo);
+            let head = result.branch_created.as_ref().unwrap();
 
-                    // Parse owner/repo from full_name
-                    let parts: Vec<&str> = repo.full_name.split('/').collect();
-                    if parts.len() == 2 {
-                        let pr_request = CreatePullRequest::new(
-                            &title,
-                            &body,
-                            head,
-                            &repo.default_branch,
-                        );
+            // Parse owner/repo from full_name
+            let parts: Vec<&str> = repo.full_name.split('/').collect();
+            if parts.len() == 2 {
+                let pr_request = CreatePullRequest::new(
+                    &title,
+                    &body,
+                    head,
+                    &repo.default_branch,
+                );
 
-                        match client.create_pull_request(parts[0], parts[1], pr_request) {
-                            Ok(pr) => {
-                                result.pr_url = Some(pr.html_url);
-                            }
-                            Err(e) => {
-                                result.errors.push(format!("PR creation failed: {}", e));
-                            }
-                        }
+                match client.create_pull_request(parts[0], parts[1], pr_request) {
+                    Ok(pr) => {
+                        result.pr_url = Some(pr.html_url);
+                    }
+                    Err(e) => {
+                        result.errors.push(format!("PR creation failed: {}", e));
                     }
                 }
             }
@@ -332,5 +332,5 @@ fn chrono_lite_date() -> String {
 }
 
 fn is_leap_year(year: u64) -> bool {
-    (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)
+    (year.is_multiple_of(4) && !year.is_multiple_of(100)) || year.is_multiple_of(400)
 }

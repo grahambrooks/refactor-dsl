@@ -140,13 +140,13 @@ impl<'a> GitDiffReader<'a> {
                     }
                 }
 
-                if let Ok(blob) = self.repo.find_blob(entry.id()) {
-                    if let Ok(content) = std::str::from_utf8(blob.content()) {
-                        files.push(FileContent {
-                            path,
-                            content: content.to_string(),
-                        });
-                    }
+                if let Ok(blob) = self.repo.find_blob(entry.id())
+                    && let Ok(content) = std::str::from_utf8(blob.content())
+                {
+                    files.push(FileContent {
+                        path,
+                        content: content.to_string(),
+                    });
                 }
             }
             git2::TreeWalkResult::Ok
@@ -494,32 +494,32 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32) {
-                if child.kind() == "parameter" {
-                    let mut param_name = None;
-                    let mut param_type = None;
+            if let Some(child) = params_node.child(i as u32)
+                && child.kind() == "parameter"
+            {
+                let mut param_name = None;
+                let mut param_type = None;
 
-                    for j in 0..child.child_count() {
-                        if let Some(sub) = child.child(j as u32) {
-                            match sub.kind() {
-                                "identifier" => {
-                                    param_name = sub.utf8_text(source).ok().map(String::from);
-                                }
-                                _ if sub.kind().contains("type") || sub.kind() == "_type" => {
-                                    param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
-                                }
-                                _ => {}
+                for j in 0..child.child_count() {
+                    if let Some(sub) = child.child(j as u32) {
+                        match sub.kind() {
+                            "identifier" => {
+                                param_name = sub.utf8_text(source).ok().map(String::from);
                             }
+                            _ if sub.kind().contains("type") || sub.kind() == "_type" => {
+                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                            }
+                            _ => {}
                         }
                     }
+                }
 
-                    if let Some(name) = param_name {
-                        let mut param = Parameter::new(name);
-                        if let Some(ty) = param_type {
-                            param = param.with_type(ty);
-                        }
-                        params.push(param);
+                if let Some(name) = param_name {
+                    let mut param = Parameter::new(name);
+                    if let Some(ty) = param_type {
+                        param = param.with_type(ty);
                     }
+                    params.push(param);
                 }
             }
         }
@@ -986,25 +986,25 @@ impl ApiExtractor {
                         }
                     }
 
-                    if let Some(name) = param_name {
-                        if name != "self" && name != "cls" {
-                            let mut param = Parameter::new(name);
-                            if let Some(ty) = param_type {
-                                param = param.with_type(ty);
-                            }
-                            if has_default {
-                                param = param.with_default();
-                            }
-                            params.push(param);
+                    if let Some(name) = param_name
+                        && name != "self" && name != "cls"
+                    {
+                        let mut param = Parameter::new(name);
+                        if let Some(ty) = param_type {
+                            param = param.with_type(ty);
                         }
+                        if has_default {
+                            param = param.with_default();
+                        }
+                        params.push(param);
                     }
                 } else if kind == "list_splat_pattern" || kind == "dictionary_splat_pattern" {
                     // *args or **kwargs
-                    if let Some(ident) = child.child_by_field_name("name") {
-                        if let Ok(name) = ident.utf8_text(source) {
-                            let param = Parameter::new(name).variadic();
-                            params.push(param);
-                        }
+                    if let Some(ident) = child.child_by_field_name("name")
+                        && let Ok(name) = ident.utf8_text(source)
+                    {
+                        let param = Parameter::new(name).variadic();
+                        params.push(param);
                     }
                 }
             }

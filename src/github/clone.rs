@@ -128,6 +128,7 @@ fn update_existing_repo(repo_path: &Path, default_branch: &str, info: &GitHubRep
 }
 
 /// Batch clone multiple repositories.
+#[allow(dead_code)]
 pub fn clone_repos(
     client: &GitHubClient,
     repos: &[GitHubRepo],
