@@ -55,6 +55,12 @@ url = "2.5"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 urlencoding = "2.1"
 
+# Code generation
+quote = "1.0"
+proc-macro2 = "1.0"
+syn = "2.0"
+prettyplease = "0.2"
+
 # GitHub API
 octocrab = "0.49"
 tokio = { version = "1.44", features = ["rt-multi-thread"] }

@@ -2,6 +2,9 @@
 
 use std::fmt::Write;
 
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
+
 use crate::codemod::Upgrade;
 use crate::matcher::Matcher;
 use crate::transform::TransformBuilder;
@@ -287,57 +290,84 @@ impl GeneratedUpgrade {
 
     /// Generate Rust source code for a static upgrade.
     pub fn to_rust_source(&self, struct_name: &str) -> String {
-        let mut code = String::new();
-
-        writeln!(code, "use refactor_dsl::codemod::Upgrade;").unwrap();
-        writeln!(code, "use refactor_dsl::matcher::Matcher;").unwrap();
-        writeln!(code, "use refactor_dsl::transform::TransformBuilder;").unwrap();
-        writeln!(code).unwrap();
-        writeln!(code, "/// {}", self.description).unwrap();
-        writeln!(code, "pub struct {};", struct_name).unwrap();
-        writeln!(code).unwrap();
-        writeln!(code, "impl Upgrade for {} {{", struct_name).unwrap();
-        writeln!(code, "    fn name(&self) -> &str {{").unwrap();
-        writeln!(code, "        \"{}\"", self.name).unwrap();
-        writeln!(code, "    }}").unwrap();
-        writeln!(code).unwrap();
-        writeln!(code, "    fn description(&self) -> &str {{").unwrap();
-        writeln!(code, "        \"{}\"", self.description).unwrap();
-        writeln!(code, "    }}").unwrap();
-        writeln!(code).unwrap();
-        writeln!(code, "    fn matcher(&self) -> Matcher {{").unwrap();
-
-        if self.extensions.is_empty() {
-            writeln!(code, "        Matcher::new()").unwrap();
-        } else {
-            let exts: Vec<_> = self.extensions.iter().map(|e| format!("\"{}\"", e)).collect();
-            writeln!(code, "        Matcher::new().files(|f| {{").unwrap();
-            writeln!(code, "            f.extensions([{}])", exts.join(", ")).unwrap();
-            writeln!(code, "                .exclude(\"**/node_modules/**\")").unwrap();
-            writeln!(code, "        }})").unwrap();
-        }
-
-        writeln!(code, "    }}").unwrap();
-        writeln!(code).unwrap();
-        writeln!(code, "    fn transform(&self) -> TransformBuilder {{").unwrap();
-        writeln!(code, "        TransformBuilder::new()").unwrap();
-
-        for transform in &self.transforms {
-            let (pattern, replacement) = transform.to_pattern_replacement();
-            writeln!(
-                code,
-                "            .replace_pattern(r\"{}\", \"{}\")",
-                pattern.replace('\\', "\\\\").replace('"', "\\\""),
-                replacement.replace('"', "\\\"")
-            )
-            .unwrap();
-        }
-
-        writeln!(code, "    }}").unwrap();
-        writeln!(code, "}}").unwrap();
-
-        code
+        let tokens = self.to_rust_tokens(struct_name);
+        format_rust_code(tokens)
     }
+
+    /// Generate Rust tokens for a static upgrade.
+    fn to_rust_tokens(&self, struct_name: &str) -> TokenStream {
+        let struct_ident = format_ident!("{}", struct_name);
+        let name = &self.name;
+        let description = &self.description;
+
+        let matcher_body = self.generate_matcher_tokens();
+        let transform_body = self.generate_transform_tokens();
+
+        quote! {
+            use refactor_dsl::codemod::Upgrade;
+            use refactor_dsl::matcher::Matcher;
+            use refactor_dsl::transform::TransformBuilder;
+
+            #[doc = #description]
+            pub struct #struct_ident;
+
+            impl Upgrade for #struct_ident {
+                fn name(&self) -> &str {
+                    #name
+                }
+
+                fn description(&self) -> &str {
+                    #description
+                }
+
+                fn matcher(&self) -> Matcher {
+                    #matcher_body
+                }
+
+                fn transform(&self) -> TransformBuilder {
+                    #transform_body
+                }
+            }
+        }
+    }
+
+    fn generate_matcher_tokens(&self) -> TokenStream {
+        if self.extensions.is_empty() {
+            quote! { Matcher::new() }
+        } else {
+            let exts = &self.extensions;
+            quote! {
+                Matcher::new().files(|f| {
+                    f.extensions([#(#exts),*])
+                        .exclude("**/node_modules/**")
+                })
+            }
+        }
+    }
+
+    fn generate_transform_tokens(&self) -> TokenStream {
+        let replace_calls: Vec<TokenStream> = self
+            .transforms
+            .iter()
+            .map(|t| {
+                let (pattern, replacement) = t.to_pattern_replacement();
+                quote! {
+                    .replace_pattern(#pattern, #replacement)
+                }
+            })
+            .collect();
+
+        quote! {
+            TransformBuilder::new()
+                #(#replace_calls)*
+        }
+    }
+}
+
+/// Format Rust tokens into a pretty-printed string.
+fn format_rust_code(tokens: TokenStream) -> String {
+    let syntax_tree = syn::parse_file(&tokens.to_string()).expect("Failed to parse generated code");
+    prettyplease::unparse(&syntax_tree)
 }
 
 impl Upgrade for GeneratedUpgrade {
