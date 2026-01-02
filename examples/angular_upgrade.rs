@@ -503,16 +503,22 @@ fn demonstrate_batch_transforms() -> Result<()> {
             r"\.catch\(([^)]+)\)",
             ".pipe(catchError($1))",
         );
-        // Note: Complex patterns like .map().filter() chains would need
-        // multi-pass processing or AST-based transforms for proper handling
+    // Note: Complex patterns like .map().filter() chains would need
+    // multi-pass processing or AST-based transforms for proper handling
 
     println!("  1. Service Files (*.service.ts):");
-    println!("     Operations: {} transformations", service_transform.describe().len());
+    println!(
+        "     Operations: {} transformations",
+        service_transform.describe().len()
+    );
     for (i, desc) in service_transform.describe().iter().take(5).enumerate() {
         println!("       {}. {}", i + 1, truncate_string(desc, 60));
     }
     if service_transform.describe().len() > 5 {
-        println!("       ... and {} more", service_transform.describe().len() - 5);
+        println!(
+            "       ... and {} more",
+            service_transform.describe().len() - 5
+        );
     }
 
     // 2. Module files transformation
@@ -521,17 +527,14 @@ fn demonstrate_batch_transforms() -> Result<()> {
             "import { HttpModule } from '@angular/http';",
             "import { HttpClientModule } from '@angular/common/http';",
         )
-        .replace_literal(
-            "HttpModule,",
-            "HttpClientModule,",
-        )
-        .replace_literal(
-            "HttpModule",
-            "HttpClientModule",
-        );
+        .replace_literal("HttpModule,", "HttpClientModule,")
+        .replace_literal("HttpModule", "HttpClientModule");
 
     println!("\n  2. Module Files (*.module.ts):");
-    println!("     Operations: {} transformations", module_transform.describe().len());
+    println!(
+        "     Operations: {} transformations",
+        module_transform.describe().len()
+    );
     for desc in module_transform.describe() {
         println!("       • {}", truncate_string(&desc, 60));
     }
@@ -552,21 +555,15 @@ fn demonstrate_batch_transforms() -> Result<()> {
             "import { Subscription } from 'rxjs';",
         )
         // Convert Observable.combineLatest to combineLatest
-        .replace_literal(
-            "Observable.combineLatest(",
-            "combineLatest([",
-        )
-        .replace_literal(
-            "Observable.forkJoin(",
-            "forkJoin(",
-        )
-        .replace_literal(
-            "Observable.merge(",
-            "merge(",
-        );
+        .replace_literal("Observable.combineLatest(", "combineLatest([")
+        .replace_literal("Observable.forkJoin(", "forkJoin(")
+        .replace_literal("Observable.merge(", "merge(");
 
     println!("\n  3. Component Files (*.component.ts):");
-    println!("     Operations: {} transformations", component_transform.describe().len());
+    println!(
+        "     Operations: {} transformations",
+        component_transform.describe().len()
+    );
     for desc in component_transform.describe() {
         println!("       • {}", truncate_string(&desc, 60));
     }

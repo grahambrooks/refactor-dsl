@@ -8,8 +8,8 @@ use lsp_types::{
     RenameParams, TextDocumentIdentifier, TextDocumentItem, TextDocumentPositionParams,
     WorkspaceClientCapabilities, WorkspaceEditClientCapabilities,
 };
-use serde::{de::DeserializeOwned, Serialize};
-use serde_json::{json, Value};
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::{Value, json};
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
