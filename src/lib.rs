@@ -87,6 +87,7 @@
 //! # Ok::<(), refactor_dsl::error::RefactorError>(())
 //! ```
 
+pub mod analyzer;
 pub mod codemod;
 pub mod diff;
 pub mod error;
@@ -100,6 +101,10 @@ pub mod transform;
 
 /// Prelude for convenient imports.
 pub mod prelude {
+    pub use crate::analyzer::{
+        AnalysisResult, ApiChange, ApiExtractor, ChangeDetector, ConfigBasedUpgrade,
+        GeneratedUpgrade, LibraryAnalyzer, TransformSpec, UpgradeConfig, UpgradeGenerator,
+    };
     pub use crate::codemod::{
         angular_v4v5_upgrade, rxjs_5_to_6_upgrade, AngularV4V5Upgrade, Codemod, CodemodResult,
         RepoFilter, RxJS5To6Upgrade, Upgrade,
