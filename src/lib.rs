@@ -87,8 +87,11 @@
 //! # Ok::<(), refactor_dsl::error::RefactorError>(())
 //! ```
 
+pub mod codemod;
 pub mod diff;
 pub mod error;
+pub mod git;
+pub mod github;
 pub mod lang;
 pub mod lsp;
 pub mod matcher;
@@ -97,7 +100,13 @@ pub mod transform;
 
 /// Prelude for convenient imports.
 pub mod prelude {
+    pub use crate::codemod::{
+        angular_v4v5_upgrade, rxjs_5_to_6_upgrade, AngularV4V5Upgrade, Codemod, CodemodResult,
+        RepoFilter, RxJS5To6Upgrade, Upgrade,
+    };
     pub use crate::error::{RefactorError, Result};
+    pub use crate::git::{BranchOps, CommitOps, GitAuth, GitOps, PushOps};
+    pub use crate::github::{GitHubClient, GitHubRepo, RepoOps};
     pub use crate::lang::{Language, LanguageRegistry, Python, Rust, TypeScript};
     pub use crate::lsp::{LspClient, LspInstaller, LspRegistry, LspRename, LspServerConfig};
     pub use crate::matcher::{AstMatcher, FileMatcher, GitMatcher, Matcher};

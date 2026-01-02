@@ -44,6 +44,27 @@ pub enum RefactorError {
 
     #[error("Invalid configuration: {0}")]
     InvalidConfig(String),
+
+    #[error("GitHub API error: {message}")]
+    GitHub { message: String },
+
+    #[error("HTTP request error: {0}")]
+    Http(#[from] reqwest::Error),
+
+    #[error("Git authentication failed: {message}")]
+    GitAuth { message: String },
+
+    #[error("Branch operation failed: {message}")]
+    BranchError { message: String },
+
+    #[error("Push failed: {message}")]
+    PushError { message: String },
+
+    #[error("Clone failed for {repo}: {message}")]
+    CloneError { repo: String, message: String },
+
+    #[error("Pull request creation failed: {message}")]
+    PullRequestError { message: String },
 }
 
 /// A specialized Result type for refactoring operations.
