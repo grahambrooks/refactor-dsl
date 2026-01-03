@@ -1,6 +1,6 @@
-//! Integration tests for the refactor-dsl crate.
+//! Integration tests for the refactor crate.
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 use std::fs::{self, File};
 use std::io::Write;
 use tempfile::TempDir;
