@@ -5,6 +5,8 @@
 //!
 //! Run with: cargo run --example extract_function
 
+#![allow(clippy::print_literal)]
+
 use refactor::prelude::*;
 
 fn main() -> Result<()> {

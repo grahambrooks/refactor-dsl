@@ -5,6 +5,8 @@
 //!
 //! Run with: cargo run --example find_dead_code
 
+#![allow(clippy::print_literal)]
+
 use refactor::prelude::*;
 
 fn main() -> Result<()> {

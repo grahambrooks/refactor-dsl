@@ -347,7 +347,7 @@ export class UserService {
     println!("\n  LSP Rename Operations:");
     println!("  ─────────────────────────────────────────────────────────");
 
-    let renames = vec![
+    let renames = [
         LspRenameOp {
             file: "src/app/services/user.service.ts",
             old_symbol: "http",
@@ -859,7 +859,7 @@ fn print_code_sample(code: &str, max_lines: usize) {
     let total = lines.len();
 
     // Skip empty first line if present
-    let start = if lines.first().map_or(false, |l| l.is_empty()) {
+    let start = if lines.first().is_some_and(|l| l.is_empty()) {
         1
     } else {
         0

@@ -523,7 +523,7 @@ mod tests {
 
     fn make_fn(name: &str, params: Vec<&str>) -> ApiSignature {
         let loc = SourceLocation::new("test.rs", 1, 1);
-        let params = params.into_iter().map(|n| Parameter::new(n)).collect();
+        let params = params.into_iter().map(Parameter::new).collect();
 
         ApiSignature::function(name, loc)
             .with_params(params)
