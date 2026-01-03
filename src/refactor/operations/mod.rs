@@ -29,7 +29,7 @@
 //! ## Example
 //!
 //! ```rust,no_run
-//! use refactor_dsl::refactor::operations::{
+//! use refactor::refactor::operations::{
 //!     RefactoringContext, ExtractFunction, RefactoringOperation,
 //! };
 //!
@@ -50,7 +50,7 @@
 //!     let result = op.apply(&mut ctx)?;
 //!     println!("{}", result.description);
 //! }
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 
 mod context;

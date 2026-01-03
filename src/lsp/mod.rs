@@ -9,14 +9,14 @@
 //! The installer module can automatically download LSP servers from the Mason registry:
 //!
 //! ```rust,no_run
-//! use refactor_dsl::lsp::installer::LspInstaller;
+//! use refactor::lsp::installer::LspInstaller;
 //!
 //! let installer = LspInstaller::new()?;
 //!
 //! // Install rust-analyzer if not already installed
 //! let binary_path = installer.ensure_installed("rust-analyzer")?;
 //! println!("rust-analyzer installed at: {}", binary_path.display());
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 
 mod client;

@@ -5,7 +5,7 @@ The `AstMatcher` finds code patterns using tree-sitter queries, enabling languag
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 let matcher = AstMatcher::new()
     .query("(function_item name: (identifier) @fn_name)");
@@ -172,7 +172,7 @@ if matcher.has_matches(source, &Rust)? {
 Find all functions that call `unwrap()`:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn find_unwrap_calls(path: &Path) -> Result<Vec<AstMatch>> {
     let source = fs::read_to_string(path)?;

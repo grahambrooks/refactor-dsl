@@ -21,7 +21,7 @@ across different programming languages.
 The `LanguageRegistry` manages available languages:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 let registry = LanguageRegistry::new();
 
@@ -45,7 +45,7 @@ println ! ("{}: {:?}", lang.name(), lang.extensions());
 Each language implements the `Language` trait:
 
 ```rust
-use refactor_dsl::lang::{Rust, TypeScript, Python};
+use refactor::lang::{Rust, TypeScript, Python};
 
 // Parse source code
 let tree = Rust.parse("fn main() {}") ?;
@@ -87,7 +87,7 @@ pub trait Language: Send + Sync {
 ### Rust
 
 ```rust
-use refactor_dsl::lang::Rust;
+use refactor::lang::Rust;
 
 let source = r#"
 fn greet(name: &str) -> String {
@@ -130,7 +130,7 @@ Common Rust queries:
 ### TypeScript
 
 ```rust
-use refactor_dsl::lang::TypeScript;
+use refactor::lang::TypeScript;
 
 let source = r#"
 function greet(name: string): string {
@@ -172,7 +172,7 @@ Common TypeScript queries:
 ### Python
 
 ```rust
-use refactor_dsl::lang::Python;
+use refactor::lang::Python;
 
 let source = r#"
 def greet(name: str) -> str:
@@ -213,7 +213,7 @@ Common Python queries:
 ### Go
 
 ```rust
-use refactor_dsl::lang::Go;
+use refactor::lang::Go;
 
 let source = r#"
 package main
@@ -268,7 +268,7 @@ Common Go queries:
 ### Java
 
 ```rust
-use refactor_dsl::lang::Java;
+use refactor::lang::Java;
 
 let source = r#"
 package com.example;
@@ -326,7 +326,7 @@ Common Java queries:
 ### C#
 
 ```rust
-use refactor_dsl::lang::CSharp;
+use refactor::lang::CSharp;
 
 let source = r#"
 using System;
@@ -383,7 +383,7 @@ Common C# queries:
 ### Ruby
 
 ```rust
-use refactor_dsl::lang::Ruby;
+use refactor::lang::Ruby;
 
 let source = r#"
 class Greeter
@@ -450,7 +450,7 @@ To add support for a new language:
 3. Register with `LanguageRegistry`
 
 ```rust
-use refactor_dsl::lang::Language;
+use refactor::lang::Language;
 use tree_sitter::Language as TsLanguage;
 
 // Add to Cargo.toml:

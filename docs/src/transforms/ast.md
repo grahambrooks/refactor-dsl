@@ -7,7 +7,7 @@ AST transforms modify code with awareness of its syntactic structure, using tree
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 Refactor::in_repo("./project")
     .transform(|t| t
@@ -90,7 +90,7 @@ AST transforms start with a tree-sitter query to identify code patterns:
 AST matching can identify locations for text-based replacement:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn rename_function(source: &str, old_name: &str, new_name: &str) -> Result<String> {
     // First, find all occurrences using AST

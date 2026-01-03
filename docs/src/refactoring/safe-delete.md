@@ -14,7 +14,7 @@ Unlike regular deletion, `SafeDelete`:
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Delete a function, checking for usages first
 let result = SafeDelete::symbol("unused_helper")
@@ -203,7 +203,7 @@ match result {
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match SafeDelete::symbol("item").in_file("src/lib.rs").execute() {
     Ok(DeleteResult::Deleted) => println!("Success"),

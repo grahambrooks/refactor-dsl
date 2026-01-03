@@ -9,7 +9,7 @@ Replace a variable with its value at all usage sites.
 ### Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Inline a variable
 let result = InlineVariable::new("temp")
@@ -73,7 +73,7 @@ Replace function calls with the function body.
 ### Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Inline all calls to a function
 let result = InlineFunction::new("helper")
@@ -216,7 +216,7 @@ match validation {
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match InlineFunction::new("helper").in_file("src/lib.rs").all_call_sites(true).execute() {
     Ok(result) => {

@@ -12,7 +12,7 @@
 //! ## Quick Start
 //!
 //! ```rust,no_run
-//! use refactor_dsl::prelude::*;
+//! use refactor::prelude::*;
 //!
 //! // Replace all .unwrap() calls with .expect() in Rust files
 //! let result = Refactor::in_repo("./my-project")
@@ -25,13 +25,13 @@
 //!     .apply()?;
 //!
 //! println!("{}", result.diff());
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 //!
 //! ## Repository Matching
 //!
 //! ```rust,no_run
-//! use refactor_dsl::prelude::*;
+//! use refactor::prelude::*;
 //!
 //! // Match repos on main branch with recent commits
 //! let result = Refactor::in_repo("./project")
@@ -42,13 +42,13 @@
 //!             .recent_commits(30)))
 //!     .transform(|t| t.replace_literal("old_api", "new_api"))
 //!     .apply()?;
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 //!
 //! ## AST-based Matching
 //!
 //! ```rust,no_run
-//! use refactor_dsl::prelude::*;
+//! use refactor::prelude::*;
 //!
 //! // Find all function definitions in Rust code
 //! let matcher = AstMatcher::new()
@@ -62,7 +62,7 @@
 //! for m in matches {
 //!     println!("Found function: {}", m.text);
 //! }
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 //!
 //! ## Supported Languages
@@ -76,7 +76,7 @@
 //! For semantic refactoring (rename, find references), use the LSP module:
 //!
 //! ```rust,no_run
-//! use refactor_dsl::lsp::{LspRename, LspRegistry};
+//! use refactor::lsp::{LspRename, LspRegistry};
 //!
 //! // Rename a symbol using LSP
 //! let result = LspRename::new("src/main.rs", 5, 4, "new_function_name")
@@ -84,7 +84,7 @@
 //!     .execute()?;
 //!
 //! println!("Would modify {} files", result.file_count());
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 
 pub mod analyzer;

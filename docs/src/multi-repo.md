@@ -5,7 +5,7 @@
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 MultiRepoRefactor::new()
     .repo("./project-a")
@@ -129,7 +129,7 @@ for (path, result) in &results {
 Update a deprecated API across all Rust projects in a workspace:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn update_api_across_workspace() -> Result<()> {
     let results = MultiRepoRefactor::new()

@@ -86,7 +86,7 @@ Detect and filter repositories by the frameworks they use, going beyond simple d
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Find all Next.js projects
 Codemod::from_github_org("company", token)
@@ -207,7 +207,7 @@ pub enum Framework {
 Define custom framework detection rules:
 
 ```rust
-use refactor_dsl::discovery::FrameworkFilter;
+use refactor::discovery::FrameworkFilter;
 
 let custom_framework = FrameworkFilter::custom("my-framework")
     .requires_dependency("my-framework-core", "*")
@@ -221,7 +221,7 @@ let custom_framework = FrameworkFilter::custom("my-framework")
 ## Direct Usage
 
 ```rust
-use refactor_dsl::discovery::FrameworkFilter;
+use refactor::discovery::FrameworkFilter;
 
 let filter = FrameworkFilter::new(Framework::React);
 
@@ -325,7 +325,7 @@ Codemod::from_github_org("company", token)
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 let filter = FrameworkFilter::new(Framework::React);
 

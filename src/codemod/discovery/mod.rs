@@ -6,7 +6,7 @@
 //! ## Example
 //!
 //! ```rust,no_run
-//! use refactor_dsl::codemod::discovery::{
+//! use refactor::codemod::discovery::{
 //!     AdvancedRepoFilter, DependencyFilter, FrameworkFilter, MetricFilter,
 //!     LanguageFilter, Framework, PackageManager, ComparisonOp, ProgrammingLanguage,
 //! };

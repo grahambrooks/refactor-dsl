@@ -9,7 +9,7 @@ Move a symbol (function, struct, class, etc.) to a different file.
 ### Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Move a function to another file
 let result = MoveToFile::new("process_data")
@@ -91,7 +91,7 @@ Move code between modules with proper path updates.
 ### Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Move to a different module path
 let result = MoveBetweenModules::new("DataProcessor")
@@ -226,7 +226,7 @@ match validation {
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match MoveToFile::new("function").from_file("src/a.rs").to_file("src/b.rs").execute() {
     Ok(result) => {

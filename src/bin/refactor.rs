@@ -2,7 +2,7 @@
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 use std::path::PathBuf;
 
 #[derive(Parser)]

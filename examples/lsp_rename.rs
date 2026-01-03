@@ -20,8 +20,8 @@
 //! cargo run --example lsp_rename -- /path/to/project src/main.rs old_name new_name
 //! ```
 
-use refactor_dsl::error::Result;
-use refactor_dsl::lsp::{LspRegistry, LspRename, Position};
+use refactor::error::Result;
+use refactor::lsp::{LspRegistry, LspRename, Position};
 use std::env;
 use std::path::PathBuf;
 
@@ -99,7 +99,7 @@ fn show_usage_examples() {
 
     println!("1. Rename a Rust function:");
     println!("   ```rust");
-    println!("   use refactor_dsl::lsp::LspRename;");
+    println!("   use refactor::lsp::LspRename;");
     println!();
     println!("   let result = LspRename::find_symbol(");
     println!("       \"src/lib.rs\",");
@@ -288,17 +288,17 @@ fn perform_rename_at_position(
 fn parse_position(s: &str) -> Result<Position> {
     let parts: Vec<&str> = s.split(':').collect();
     if parts.len() != 2 {
-        return Err(refactor_dsl::error::RefactorError::InvalidConfig(
+        return Err(refactor::error::RefactorError::InvalidConfig(
             "Position must be in format 'line:col'".to_string(),
         ));
     }
 
     let line: u32 = parts[0].parse().map_err(|_| {
-        refactor_dsl::error::RefactorError::InvalidConfig("Invalid line number".to_string())
+        refactor::error::RefactorError::InvalidConfig("Invalid line number".to_string())
     })?;
 
     let col: u32 = parts[1].parse().map_err(|_| {
-        refactor_dsl::error::RefactorError::InvalidConfig("Invalid column number".to_string())
+        refactor::error::RefactorError::InvalidConfig("Invalid column number".to_string())
     })?;
 
     // Convert from 1-indexed to 0-indexed

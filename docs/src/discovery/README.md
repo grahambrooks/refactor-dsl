@@ -14,7 +14,7 @@ The discovery module extends basic Git repository filtering with:
 ## Quick Start
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Find all React 17+ projects with over 1000 lines of code
 Codemod::from_github_org("acme-corp", token)
@@ -165,7 +165,7 @@ Codemod::from_paths(repos)
 Use `AdvancedRepoFilter` for complex filtering:
 
 ```rust
-use refactor_dsl::discovery::AdvancedRepoFilter;
+use refactor::discovery::AdvancedRepoFilter;
 
 let filter = AdvancedRepoFilter::new()
     // Base Git filters
@@ -207,7 +207,7 @@ Codemod::from_github_org("large-org", token)
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match Codemod::from_github_org("org", token)
     .repositories(|r| r.has_dependency("react", "*"))

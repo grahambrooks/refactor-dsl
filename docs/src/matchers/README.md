@@ -80,7 +80,7 @@ Refactor::in_repo("./project")
 You can use matchers independently of the `Refactor` builder:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Check if a repo matches
 let git = GitMatcher::new()

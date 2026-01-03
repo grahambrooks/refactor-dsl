@@ -3,7 +3,7 @@
 //! This example demonstrates how to use the DSL to reorganize
 //! project structure, move files, and batch rename operations.
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 use std::path::PathBuf;
 
 fn main() -> Result<()> {

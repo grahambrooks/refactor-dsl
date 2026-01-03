@@ -9,9 +9,9 @@ description = "A domain-specific language for multi-language code refactoring wi
 build-dir = "book"
 
 [output.html]
-git-repository-url = "https://github.com/yourusername/refactor-dsl"
-edit-url-template = "https://github.com/yourusername/refactor-dsl/edit/main/docs/{path}"
-site-url = "/refactor-dsl/"
+git-repository-url = "https://github.com/yourusername/refactor"
+edit-url-template = "https://github.com/yourusername/refactor/edit/main/docs/{path}"
+site-url = "/refactor/"
 default-theme = "rust"
 preferred-dark-theme = "coal"
 smart-punctuation = true

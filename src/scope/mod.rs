@@ -13,7 +13,7 @@
 //! ## Example
 //!
 //! ```rust,no_run
-//! use refactor_dsl::scope::{ScopeAnalyzer, BindingKind};
+//! use refactor::scope::{ScopeAnalyzer, BindingKind};
 //! use std::path::Path;
 //!
 //! let mut analyzer = ScopeAnalyzer::new();
@@ -31,7 +31,7 @@
 //!     let usages = analyzer.find_usages(&binding);
 //!     println!("Found {} usages of 'helper'", usages.len());
 //! }
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 
 mod binding;

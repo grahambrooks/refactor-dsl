@@ -4,7 +4,7 @@
 //! code transformations including pattern replacement,
 //! AST-aware refactoring, and batch symbol renaming.
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn main() -> Result<()> {
     println!("=== Code Rewriting Examples ===\n");

@@ -13,7 +13,7 @@ Filter repositories based on the programming languages they use.
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Find Rust projects
 Codemod::from_github_org("company", token)
@@ -45,7 +45,7 @@ The primary language is determined by lines of code (excluding comments and blan
 Filter by language percentage:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // At least 80% TypeScript
 .language_percentage("typescript", ComparisonOp::GreaterThanOrEqual, 80.0)
@@ -132,7 +132,7 @@ Languages are detected by file extension:
 ## Direct Usage
 
 ```rust
-use refactor_dsl::discovery::LanguageFilter;
+use refactor::discovery::LanguageFilter;
 
 let filter = LanguageFilter::primary("rust");
 
@@ -157,7 +157,7 @@ for (lang, stats) in &analysis.languages {
 Get detailed language statistics:
 
 ```rust
-use refactor_dsl::discovery::LanguageAnalysis;
+use refactor::discovery::LanguageAnalysis;
 
 let analysis = LanguageAnalysis::for_repo(Path::new("./project"))?;
 
@@ -268,7 +268,7 @@ Codemod::from_github_org("company", token)
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 let filter = LanguageFilter::primary("rust");
 

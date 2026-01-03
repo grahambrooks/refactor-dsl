@@ -16,7 +16,7 @@ Filter repositories based on code metrics like lines of code, file count, comple
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Find large projects
 Codemod::from_github_org("company", token)
@@ -134,7 +134,7 @@ Combine metrics (AND logic):
 ## Direct Usage
 
 ```rust
-use refactor_dsl::discovery::MetricFilter;
+use refactor::discovery::MetricFilter;
 
 let filter = MetricFilter::lines_of_code(ComparisonOp::GreaterThan, 1000.0);
 
@@ -155,7 +155,7 @@ println!("Average file size: {:.1}", metrics.avg_file_size);
 Generate a full metrics report:
 
 ```rust
-use refactor_dsl::discovery::MetricsReport;
+use refactor::discovery::MetricsReport;
 
 let report = MetricsReport::for_repo(Path::new("./project"))?;
 
@@ -195,7 +195,7 @@ let filter = MetricFilter::lines_of_code(ComparisonOp::GreaterThan, 1000.0)
 Create composite metrics:
 
 ```rust
-use refactor_dsl::discovery::CompositeMetric;
+use refactor::discovery::CompositeMetric;
 
 // "Maintainability score"
 let maintainability = CompositeMetric::new()
@@ -266,7 +266,7 @@ Codemod::from_github_org("company", token)
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 let filter = MetricFilter::lines_of_code(ComparisonOp::GreaterThan, 1000.0);
 

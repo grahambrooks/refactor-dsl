@@ -20,7 +20,7 @@ Refactor DSL is a Rust library and CLI tool that provides a fluent, type-safe AP
 ### Fluent Builder API
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 Refactor::in_repo("./my-project")
     .matching(|m| m
@@ -53,7 +53,7 @@ Refactor::in_repo("./my-project")
 ### IDE-Like Refactoring Operations
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Extract a function from selected code
 ExtractFunction::new("calculate_total")
@@ -78,7 +78,7 @@ SafeDelete::symbol("unused_helper")
 ### Enhanced Repository Discovery
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Filter GitHub org repos by dependencies and frameworks
 Codemod::from_github_org("acme-corp", token)

@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo run --example find_dead_code
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn main() -> Result<()> {
     println!("=== Find Dead Code Example ===\n");

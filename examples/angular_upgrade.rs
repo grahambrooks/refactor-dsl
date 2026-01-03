@@ -14,7 +14,7 @@
 //! This simulates the kind of large-scale, organization-wide refactoring
 //! needed when upgrading Angular applications across multiple projects.
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 use std::path::Path;
 
 fn main() -> Result<()> {
@@ -53,7 +53,7 @@ fn demonstrate_multi_repo_setup() -> Result<()> {
     println!("  Step 1: Discover repositories from GitHub organization");
     println!("  ─────────────────────────────────────────────────────────");
     println!("  ```rust");
-    println!("  use refactor_dsl::github::GitHubClient;");
+    println!("  use refactor::github::GitHubClient;");
     println!();
     println!("  let client = GitHubClient::new(github_token);");
     println!();
@@ -92,7 +92,7 @@ fn demonstrate_multi_repo_setup() -> Result<()> {
     println!("\n  Step 3: Filter using ProjectMatcher DSL");
     println!("  ─────────────────────────────────────────────────────────");
     println!("  ```rust");
-    println!("  use refactor_dsl::matcher::ProjectMatcher;");
+    println!("  use refactor::matcher::ProjectMatcher;");
     println!();
     println!("  // Create a matcher to detect Angular projects");
     println!("  let angular_matcher = ProjectMatcher::new()");
@@ -393,7 +393,7 @@ export class UserService {
     // Show LSP rename code
     println!("\n  LSP Rename Implementation:");
     println!("  ```rust");
-    println!("  use refactor_dsl::lsp::{{LspRename, LspRegistry}};");
+    println!("  use refactor::lsp::{{LspRename, LspRegistry}};");
     println!();
     println!("  // Auto-install typescript-language-server if not present");
     println!("  let result = LspRename::find_symbol(");
@@ -607,8 +607,8 @@ fn demonstrate_full_multi_repo_workflow() -> Result<()> {
 
     // Show the complete workflow
     println!("  ```rust");
-    println!("  use refactor_dsl::prelude::*;");
-    println!("  use refactor_dsl::lsp::LspRename;");
+    println!("  use refactor::prelude::*;");
+    println!("  use refactor::lsp::LspRename;");
     println!("  use git2::Repository;");
     println!("  use std::path::Path;");
     println!();

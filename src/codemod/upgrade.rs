@@ -11,9 +11,9 @@ use crate::transform::TransformBuilder;
 /// # Example
 ///
 /// ```rust
-/// use refactor_dsl::codemod::Upgrade;
-/// use refactor_dsl::matcher::Matcher;
-/// use refactor_dsl::transform::TransformBuilder;
+/// use refactor::codemod::Upgrade;
+/// use refactor::matcher::Matcher;
+/// use refactor::transform::TransformBuilder;
 ///
 /// struct MyUpgrade;
 ///
@@ -223,9 +223,9 @@ pub fn rxjs_5_to_6_upgrade() -> RxJS5To6Upgrade {
 /// # Example
 ///
 /// ```rust
-/// use refactor_dsl::codemod::ClosureUpgrade;
-/// use refactor_dsl::matcher::Matcher;
-/// use refactor_dsl::transform::TransformBuilder;
+/// use refactor::codemod::ClosureUpgrade;
+/// use refactor::matcher::Matcher;
+/// use refactor::transform::TransformBuilder;
 ///
 /// let upgrade = ClosureUpgrade::new(
 ///     "rename-api",

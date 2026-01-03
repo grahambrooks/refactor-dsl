@@ -5,7 +5,7 @@ The `GitMatcher` filters repositories based on Git state, including branch, comm
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 let matcher = GitMatcher::new()
     .branch("main")
@@ -87,7 +87,7 @@ Match repositories with recent activity:
 ## Complete Example
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn find_active_rust_projects(workspace: &Path) -> Result<Vec<PathBuf>> {
     let matcher = GitMatcher::new()
@@ -146,7 +146,7 @@ Git matcher operations can fail if:
 - Git operations fail
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match matcher.matches(path) {
     Ok(true) => println!("Matches"),

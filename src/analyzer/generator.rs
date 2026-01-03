@@ -304,9 +304,9 @@ impl GeneratedUpgrade {
         let transform_body = self.generate_transform_tokens();
 
         quote! {
-            use refactor_dsl::codemod::Upgrade;
-            use refactor_dsl::matcher::Matcher;
-            use refactor_dsl::transform::TransformBuilder;
+            use refactor::codemod::Upgrade;
+            use refactor::matcher::Matcher;
+            use refactor::transform::TransformBuilder;
 
             #[doc = #description]
             pub struct #struct_ident;

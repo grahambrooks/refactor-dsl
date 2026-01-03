@@ -5,7 +5,7 @@ Text transforms modify source code using pattern matching and replacement. They 
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 let transform = TextTransform::replace(r"\.unwrap\(\)", ".expect(\"error\")");
 let result = transform.apply(source, Path::new("file.rs"))?;
@@ -145,7 +145,7 @@ let result = Refactor::in_repo("./project")
 ### Add Missing Attributes
 
 ```rust
-use refactor_dsl::transform::TextTransform;
+use refactor::transform::TextTransform;
 
 // Add #[derive(Debug)] before struct definitions that don't have it
 let transform = TextTransform::insert_before(
@@ -186,7 +186,7 @@ Refactor::in_repo("./project")
 Invalid regex patterns return errors:
 
 ```rust
-use refactor_dsl::transform::TextTransform;
+use refactor::transform::TextTransform;
 
 // This will panic - invalid regex
 // TextTransform::replace(r"[invalid", "replacement")

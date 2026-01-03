@@ -11,7 +11,7 @@ Let's say you want to replace all uses of `.unwrap()` with `.expect("...")` in a
 Always start with a dry run to see what will change:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn main() -> Result<()> {
     let result = Refactor::in_repo("./my-rust-project")

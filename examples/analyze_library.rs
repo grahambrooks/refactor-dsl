@@ -11,9 +11,9 @@
 //! cargo run --example analyze_library -- /path/to/library v1.0.0 v2.0.0
 //! ```
 
-use refactor_dsl::analyzer::{LibraryAnalyzer, UpgradeConfig};
-use refactor_dsl::codemod::Codemod;
-use refactor_dsl::error::Result;
+use refactor::analyzer::{LibraryAnalyzer, UpgradeConfig};
+use refactor::codemod::Codemod;
+use refactor::error::Result;
 use std::env;
 use std::path::PathBuf;
 

@@ -7,7 +7,7 @@ Configure LSP servers for different languages using `LspRegistry` and `LspServer
 The registry manages server configurations for different languages:
 
 ```rust
-use refactor_dsl::lsp::{LspRegistry, LspServerConfig};
+use refactor::lsp::{LspRegistry, LspServerConfig};
 
 // Create with defaults (rust-analyzer, tsserver, pyright, etc.)
 let registry = LspRegistry::new();
@@ -50,7 +50,7 @@ for server in registry.all() {
 ### LspServerConfig Builder
 
 ```rust
-use refactor_dsl::lsp::LspServerConfig;
+use refactor::lsp::LspServerConfig;
 
 let config = LspServerConfig::new("my-lsp", "/path/to/my-lsp")
     .arg("--stdio")
@@ -91,7 +91,7 @@ let root = config.find_root(Path::new("src/main.rs"));
 ## Using with LspClient
 
 ```rust
-use refactor_dsl::lsp::{LspClient, LspRegistry};
+use refactor::lsp::{LspClient, LspRegistry};
 
 let registry = LspRegistry::new();
 let config = registry.find_for_file(Path::new("src/main.rs"))
@@ -107,7 +107,7 @@ client.initialize()?;
 ## Using with LspRename
 
 ```rust
-use refactor_dsl::lsp::{LspRename, LspServerConfig};
+use refactor::lsp::{LspRename, LspServerConfig};
 
 // Use default server (auto-detected)
 let result = LspRename::new("src/main.rs", 10, 4, "new_name")

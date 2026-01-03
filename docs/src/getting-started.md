@@ -19,7 +19,7 @@ Refactor DSL can be used in two ways:
 Here's a simple example that replaces all `.unwrap()` calls with `.expect()`:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn main() -> Result<()> {
     let result = Refactor::in_repo("./my-project")

@@ -19,7 +19,7 @@ Unlike simple text transforms, refactoring operations:
 Extract code into new functions, variables, or constants:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Extract lines 10-20 into a new function
 ExtractFunction::new("calculate_total")
@@ -219,7 +219,7 @@ ExtractFunction::new("process")
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match SafeDelete::symbol("helper").in_file("src/lib.rs").execute() {
     Ok(result) => println!("Deleted successfully"),

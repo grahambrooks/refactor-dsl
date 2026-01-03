@@ -5,7 +5,7 @@
 //!
 //! Run with: cargo run --example extract_function
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn main() -> Result<()> {
     // Example source code with a block we want to extract

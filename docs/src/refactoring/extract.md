@@ -9,7 +9,7 @@ Extract a block of code into a new function.
 ### Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Extract lines 10-20 into a new function
 let result = ExtractFunction::new("calculate_total")
@@ -124,7 +124,7 @@ Extract an expression into a named variable.
 ### Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Extract expression at position into a variable
 let result = ExtractVariable::new("tax_rate")
@@ -172,7 +172,7 @@ Extract a literal value into a named constant.
 ### Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Extract magic number into a constant
 ExtractConstant::new("MAX_RETRIES")
@@ -247,7 +247,7 @@ Extract operations support:
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match ExtractFunction::new("helper").from_file("src/main.rs").range(selection).execute() {
     Ok(result) => {

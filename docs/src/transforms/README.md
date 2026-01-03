@@ -60,8 +60,8 @@ pub trait Transform: Send + Sync {
 Implement the `Transform` trait for custom behavior:
 
 ```rust
-use refactor_dsl::transform::Transform;
-use refactor_dsl::error::Result;
+use refactor::transform::Transform;
+use refactor::error::Result;
 use std::path::Path;
 
 struct UppercaseTransform;

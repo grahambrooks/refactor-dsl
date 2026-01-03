@@ -27,7 +27,7 @@ use std::path::Path;
 /// # Example
 ///
 /// ```rust,no_run
-/// use refactor_dsl::git::{GitOps, GitAuth, BranchOps, CommitOps, PushOps};
+/// use refactor::git::{GitOps, GitAuth, BranchOps, CommitOps, PushOps};
 ///
 /// let git = GitOps::open("./my-repo")?
 ///     .with_auth(GitAuth::ssh_default()?);
@@ -37,7 +37,7 @@ use std::path::Path;
 /// git.stage_all()?;
 /// git.commit("chore: automated upgrade")?;
 /// git.push("origin", "feature/upgrade")?;
-/// # Ok::<(), refactor_dsl::error::RefactorError>(())
+/// # Ok::<(), refactor::error::RefactorError>(())
 /// ```
 pub struct GitOps {
     repo: Repository,

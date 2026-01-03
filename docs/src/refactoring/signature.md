@@ -16,7 +16,7 @@ All call sites are updated automatically to maintain correctness.
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Add a new parameter with a default value
 let result = ChangeSignature::for_function("process")
@@ -222,7 +222,7 @@ match validation {
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match ChangeSignature::for_function("api").in_file("src/lib.rs")
     .add_parameter("param", "Type", "default")

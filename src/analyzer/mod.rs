@@ -14,8 +14,8 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use refactor_dsl::analyzer::LibraryAnalyzer;
-//! use refactor_dsl::codemod::Codemod;
+//! use refactor::analyzer::LibraryAnalyzer;
+//! use refactor::codemod::Codemod;
 //!
 //! // Analyze library changes between versions
 //! let analyzer = LibraryAnalyzer::new("./my-library")?;
@@ -28,7 +28,7 @@
 //! Codemod::from_local("./projects")
 //!     .apply(upgrade)
 //!     .execute()?;
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 //!
 //! # Configuration Files
@@ -36,7 +36,7 @@
 //! You can also save and load upgrade configurations:
 //!
 //! ```rust,no_run
-//! use refactor_dsl::analyzer::{LibraryAnalyzer, UpgradeConfig};
+//! use refactor::analyzer::{LibraryAnalyzer, UpgradeConfig};
 //!
 //! // Generate and save config
 //! let analyzer = LibraryAnalyzer::new("./my-library")?;
@@ -46,7 +46,7 @@
 //! // Load and apply config later
 //! let loaded = UpgradeConfig::from_yaml("upgrade.yaml")?;
 //! let upgrade = loaded.to_upgrade();
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 
 mod change;
@@ -112,7 +112,7 @@ impl AnalysisResult {
 /// # Example
 ///
 /// ```rust,no_run
-/// use refactor_dsl::analyzer::LibraryAnalyzer;
+/// use refactor::analyzer::LibraryAnalyzer;
 ///
 /// let analyzer = LibraryAnalyzer::new("./my-library")?
 ///     .for_extensions(vec!["ts", "tsx"])
@@ -123,7 +123,7 @@ impl AnalysisResult {
 /// println!("Found {} API changes", result.changes.len());
 /// println!("Breaking: {}", result.breaking_changes().len());
 /// println!("Auto-fixable: {}", result.auto_transformable().len());
-/// # Ok::<(), refactor_dsl::error::RefactorError>(())
+/// # Ok::<(), refactor::error::RefactorError>(())
 /// ```
 pub struct LibraryAnalyzer {
     repo_path: PathBuf,

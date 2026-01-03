@@ -535,7 +535,7 @@ Use the [tree-sitter playground](https://tree-sitter.github.io/tree-sitter/playg
 ### In Refactor DSL
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Test query validity
 let result = Rust.query("(function_item @fn)");

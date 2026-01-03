@@ -3,7 +3,7 @@
 //! This example demonstrates how to use the DSL to filter repositories
 //! based on Git state, file presence, and other criteria.
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn main() -> Result<()> {
     // Example 1: Match a repository on a specific branch

@@ -8,7 +8,7 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use refactor_dsl::github::{GitHubClient, RepoOps};
+//! use refactor::github::{GitHubClient, RepoOps};
 //!
 //! let client = GitHubClient::new("ghp_your_token_here");
 //!
@@ -18,7 +18,7 @@
 //! for repo in repos {
 //!     println!("{}: {}", repo.name, repo.clone_url);
 //! }
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 
 mod client;

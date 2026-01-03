@@ -1,12 +1,12 @@
 [package]
-name = "refactor-dsl"
+name = "refactor"
 version = "0.1.0"
 edition = "2024"
 description = "A DSL for multi-language code refactoring with Git-aware matching"
 license = "MIT"
 
 [lib]
-name = "refactor_dsl"
+name = "refactor"
 path = "src/lib.rs"
 
 [[bin]]

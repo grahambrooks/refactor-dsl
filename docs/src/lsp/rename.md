@@ -9,7 +9,7 @@
 Rename the symbol at a specific location:
 
 ```rust
-use refactor_dsl::lsp::LspRename;
+use refactor::lsp::LspRename;
 
 // Rename symbol at line 10, column 4 (0-indexed)
 let result = LspRename::new("src/main.rs", 10, 4, "new_name")
@@ -45,7 +45,7 @@ LspRename::new("src/main.rs", 10, 4, "new_name")
 Use a specific server configuration:
 
 ```rust
-use refactor_dsl::lsp::LspServerConfig;
+use refactor::lsp::LspServerConfig;
 
 let config = LspServerConfig::new("my-analyzer", "/opt/my-analyzer")
     .arg("--stdio");
@@ -138,7 +138,7 @@ edit.apply()?;
 ## Complete Example
 
 ```rust
-use refactor_dsl::lsp::LspRename;
+use refactor::lsp::LspRename;
 
 fn rename_api_function() -> Result<()> {
     // Find the function to rename
@@ -225,7 +225,7 @@ fn main() {
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match LspRename::find_symbol("src/main.rs", "not_found", "new_name") {
     Ok(rename) => {

@@ -7,7 +7,7 @@ This page provides a quick reference to the main types and functions in Refactor
 Import commonly used types with:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 ```
 
 This includes:
@@ -265,4 +265,4 @@ pub type Result<T> = std::result::Result<T, RefactorError>;
 
 - [Getting Started](./getting-started.md)
 - [Examples](./getting-started/quick-start.md)
-- Generated rustdoc at [docs.rs](https://docs.rs/refactor-dsl)
+- Generated rustdoc at [docs.rs](https://docs.rs/refactor)

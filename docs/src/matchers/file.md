@@ -5,7 +5,7 @@ The `FileMatcher` filters files by extension, path patterns, content, and size.
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 let matcher = FileMatcher::new()
     .extension("rs")
@@ -104,7 +104,7 @@ Filter by file size in bytes:
 ## Complete Example
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn find_large_rust_files_with_todos() -> Result<Vec<PathBuf>> {
     FileMatcher::new()

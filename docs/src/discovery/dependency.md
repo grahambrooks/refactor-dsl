@@ -18,7 +18,7 @@ Filter repositories based on their package dependencies across multiple ecosyste
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Find repos using a specific dependency
 Codemod::from_github_org("company", token)
@@ -70,7 +70,7 @@ Codemod::from_github_org("company", token)
 ### NPM/Yarn
 
 ```rust
-use refactor_dsl::discovery::DependencyFilter;
+use refactor::discovery::DependencyFilter;
 
 // Production dependency
 DependencyFilter::npm("react", ">=17.0")
@@ -186,7 +186,7 @@ DependencyFilter::npm("lodash", "*")
 ## Direct Usage
 
 ```rust
-use refactor_dsl::discovery::DependencyFilter;
+use refactor::discovery::DependencyFilter;
 
 let filter = DependencyFilter::npm("react", ">=17.0");
 
@@ -256,7 +256,7 @@ requests
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 let filter = DependencyFilter::npm("react", ">=17.0");
 

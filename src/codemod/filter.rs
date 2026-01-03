@@ -33,7 +33,7 @@ impl RepoFilter {
     /// # Example
     ///
     /// ```rust
-    /// use refactor_dsl::codemod::RepoFilter;
+    /// use refactor::codemod::RepoFilter;
     ///
     /// let filter = RepoFilter::new()
     ///     .has_file("package.json")
@@ -81,7 +81,7 @@ impl RepoFilter {
     /// # Example
     ///
     /// ```rust
-    /// use refactor_dsl::codemod::RepoFilter;
+    /// use refactor::codemod::RepoFilter;
     ///
     /// let filter = RepoFilter::new()
     ///     .filter(|repo| repo.name.starts_with("frontend-"));

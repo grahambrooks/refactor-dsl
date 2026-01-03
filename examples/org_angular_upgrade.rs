@@ -29,7 +29,7 @@
 //! 6. Commits and pushes the changes
 //! 7. Creates pull requests for review
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 use std::path::PathBuf;
 
 fn main() -> Result<()> {
@@ -145,7 +145,7 @@ fn demo_mode() -> Result<()> {
     println!("The codemod builder provides a fluent API for multi-repo refactoring:\n");
 
     println!("```rust");
-    println!("use refactor_dsl::prelude::*;");
+    println!("use refactor::prelude::*;");
     println!();
     println!("let result = Codemod::from_github_org(\"acme-corp\", &token)");
     println!("    .repositories(|r| r");
@@ -216,10 +216,10 @@ fn print_results(result: &CodemodResult) {
 
     for repo_result in &result.repo_results {
         let status_icon = match &repo_result.status {
-            refactor_dsl::codemod::RepoStatus::Success => "✓",
-            refactor_dsl::codemod::RepoStatus::NoChanges => "○",
-            refactor_dsl::codemod::RepoStatus::Skipped(_) => "⊘",
-            refactor_dsl::codemod::RepoStatus::Failed(_) => "✗",
+            refactor::codemod::RepoStatus::Success => "✓",
+            refactor::codemod::RepoStatus::NoChanges => "○",
+            refactor::codemod::RepoStatus::Skipped(_) => "⊘",
+            refactor::codemod::RepoStatus::Failed(_) => "✗",
         };
 
         println!(
@@ -240,10 +240,10 @@ fn print_results(result: &CodemodResult) {
         }
 
         match &repo_result.status {
-            refactor_dsl::codemod::RepoStatus::Skipped(reason) => {
+            refactor::codemod::RepoStatus::Skipped(reason) => {
                 println!("      Skipped: {}", reason);
             }
-            refactor_dsl::codemod::RepoStatus::Failed(reason) => {
+            refactor::codemod::RepoStatus::Failed(reason) => {
                 println!("      Failed: {}", reason);
             }
             _ => {}

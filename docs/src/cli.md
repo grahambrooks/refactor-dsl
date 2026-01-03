@@ -6,8 +6,8 @@ The `refactor` CLI provides command-line access to refactoring operations.
 
 ```bash
 # From source
-git clone https://github.com/yourusername/refactor-dsl
-cd refactor-dsl
+git clone https://github.com/yourusername/refactor
+cd refactor
 cargo install --path .
 
 # Verify

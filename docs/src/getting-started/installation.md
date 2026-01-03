@@ -6,13 +6,13 @@ Add Refactor DSL to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-refactor-dsl = "0.1"
+refactor = "0.1"
 ```
 
 Then import the prelude in your code:
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 ```
 
 The prelude includes all commonly used types:
@@ -33,8 +33,8 @@ The prelude includes all commonly used types:
 Clone and build the CLI:
 
 ```bash
-git clone https://github.com/yourusername/refactor-dsl
-cd refactor-dsl
+git clone https://github.com/yourusername/refactor
+cd refactor
 cargo install --path .
 ```
 

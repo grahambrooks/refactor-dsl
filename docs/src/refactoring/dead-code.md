@@ -16,7 +16,7 @@ Dead code analysis identifies unused code that can be safely removed, helping ke
 ## Basic Usage
 
 ```rust
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 // Find all dead code in a workspace
 let report = FindDeadCode::in_workspace("./project")
@@ -278,7 +278,7 @@ let report = FindDeadCode::in_workspace("./project")
 ```yaml
 - name: Check for dead code
   run: |
-    refactor-dsl dead-code --format sarif > dead-code.sarif
+    refactor dead-code --format sarif > dead-code.sarif
 
 - name: Upload SARIF
   uses: github/codeql-action/upload-sarif@v2
@@ -290,7 +290,7 @@ let report = FindDeadCode::in_workspace("./project")
 
 ```bash
 #!/bin/bash
-result=$(refactor-dsl dead-code --exit-code)
+result=$(refactor dead-code --exit-code)
 if [ $? -ne 0 ]; then
     echo "Dead code found! Please remove unused code."
     exit 1
@@ -300,7 +300,7 @@ fi
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match FindDeadCode::in_workspace("./project").execute() {
     Ok(report) => {

@@ -18,7 +18,7 @@ While text-based and AST transforms are powerful, they lack semantic understandi
 ## Quick Start
 
 ```rust
-use refactor_dsl::lsp::LspRename;
+use refactor::lsp::LspRename;
 
 // Rename a symbol semantically
 let result = LspRename::new("src/main.rs", 10, 4, "new_function_name")
@@ -125,7 +125,7 @@ Future planned operations:
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match LspRename::new("file.rs", 10, 4, "new_name").execute() {
     Ok(result) => println!("Renamed in {} files", result.file_count()),

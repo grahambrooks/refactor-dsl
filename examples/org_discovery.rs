@@ -6,7 +6,7 @@
 //!
 //! Run with: cargo run --example org_discovery
 
-use refactor_dsl::prelude::*;
+use refactor::prelude::*;
 
 fn main() -> Result<()> {
     println!("=== Organization Repository Discovery ===\n");

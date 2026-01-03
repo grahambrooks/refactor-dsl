@@ -5,7 +5,7 @@ Refactor DSL can automatically download and install LSP servers from the [Mason 
 ## Quick Start
 
 ```rust
-use refactor_dsl::lsp::LspRename;
+use refactor::lsp::LspRename;
 
 // Automatically install rust-analyzer if not in PATH
 LspRename::find_symbol("src/main.rs", "old_fn", "new_fn")?
@@ -18,7 +18,7 @@ LspRename::find_symbol("src/main.rs", "old_fn", "new_fn")?
 For direct control over installations:
 
 ```rust
-use refactor_dsl::lsp::LspInstaller;
+use refactor::lsp::LspInstaller;
 
 let installer = LspInstaller::new()?;
 
@@ -56,8 +56,8 @@ Browse all packages at [mason-registry.dev](https://mason-registry.dev/).
 
 By default, servers are installed to:
 
-- **Linux/macOS:** `~/.local/share/refactor-dsl/lsp-servers/`
-- **Windows:** `%LOCALAPPDATA%/refactor-dsl/lsp-servers/`
+- **Linux/macOS:** `~/.local/share/refactor/lsp-servers/`
+- **Windows:** `%LOCALAPPDATA%/refactor/lsp-servers/`
 
 Customize the location:
 
@@ -72,7 +72,7 @@ let installer = LspInstaller::new()?
 The installer automatically detects your platform:
 
 ```rust
-use refactor_dsl::lsp::installer::{Platform, Os, Arch};
+use refactor::lsp::installer::{Platform, Os, Arch};
 
 let platform = Platform::detect();
 println!("OS: {:?}, Arch: {:?}", platform.os, platform.arch);
@@ -164,7 +164,7 @@ This will:
 ## Error Handling
 
 ```rust
-use refactor_dsl::error::RefactorError;
+use refactor::error::RefactorError;
 
 match installer.install("unknown-server") {
     Ok(path) => println!("Installed to {}", path.display()),

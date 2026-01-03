@@ -12,7 +12,7 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use refactor_dsl::codemod::{Codemod, angular_v4v5_upgrade};
+//! use refactor::codemod::{Codemod, angular_v4v5_upgrade};
 //!
 //! let result = Codemod::from_github_org("acme-corp", "ghp_token")
 //!     .repositories(|r| r
@@ -27,7 +27,7 @@
 //!     .execute()?;
 //!
 //! println!("Modified {} repositories", result.summary.modified_repos);
-//! # Ok::<(), refactor_dsl::error::RefactorError>(())
+//! # Ok::<(), refactor::error::RefactorError>(())
 //! ```
 
 pub mod discovery;
@@ -213,7 +213,7 @@ impl Codemod {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use refactor_dsl::codemod::Codemod;
+    /// use refactor::codemod::Codemod;
     ///
     /// let codemod = Codemod::from_github_org("my-org", "ghp_token");
     /// ```
@@ -244,7 +244,7 @@ impl Codemod {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use refactor_dsl::codemod::Codemod;
+    /// use refactor::codemod::Codemod;
     ///
     /// let codemod = Codemod::from_local("/path/to/repos");
     /// ```
@@ -272,7 +272,7 @@ impl Codemod {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use refactor_dsl::codemod::Codemod;
+    /// use refactor::codemod::Codemod;
     ///
     /// let codemod = Codemod::from_paths(["/path/to/repo1", "/path/to/repo2"]);
     /// ```
@@ -300,7 +300,7 @@ impl Codemod {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use refactor_dsl::codemod::Codemod;
+    /// use refactor::codemod::Codemod;
     ///
     /// Codemod::from_local("./repos")
     ///     .repositories(|r| r
@@ -323,7 +323,7 @@ impl Codemod {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use refactor_dsl::codemod::{Codemod, angular_v4v5_upgrade, rxjs_5_to_6_upgrade};
+    /// use refactor::codemod::{Codemod, angular_v4v5_upgrade, rxjs_5_to_6_upgrade};
     ///
     /// Codemod::from_local("./repos")
     ///     .apply(angular_v4v5_upgrade())
@@ -343,7 +343,7 @@ impl Codemod {
     /// # Example
     ///
     /// ```rust,no_run
-    /// use refactor_dsl::codemod::Codemod;
+    /// use refactor::codemod::Codemod;
     ///
     /// Codemod::from_local("./repos")
     ///     .on_branch("chore/upgrade-{date}");
