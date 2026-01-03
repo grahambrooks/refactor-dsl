@@ -57,11 +57,7 @@ impl DiffSummary {
         }
 
         Self {
-            files_changed: if insertions > 0 || deletions > 0 {
-                1
-            } else {
-                0
-            },
+            files_changed: if insertions > 0 || deletions > 0 { 1 } else { 0 },
             insertions,
             deletions,
         }
@@ -276,3 +272,4 @@ mod tests {
         assert_eq!(summary.deletions, 1);
     }
 }
+
