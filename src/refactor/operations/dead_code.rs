@@ -358,8 +358,8 @@ impl FindDeadCode {
 
         while let Some(m) = matches.next() {
             for capture in m.captures {
-                if let Ok(text) = capture.node.utf8_text(source_bytes) {
-                    if text == name {
+                if let Ok(text) = capture.node.utf8_text(source_bytes)
+                    && text == name {
                         let node = capture.node;
                         let range = Range {
                             start: Position {
@@ -381,7 +381,6 @@ impl FindDeadCode {
                             count += 1;
                         }
                     }
-                }
             }
         }
 

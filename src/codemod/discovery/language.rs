@@ -300,18 +300,16 @@ impl LanguageFilter {
         let info = LanguageInfo::analyze(repo_path)?;
 
         // Check primary language
-        if let Some(ref required) = self.required_primary {
-            if info.primary != Some(*required) {
+        if let Some(ref required) = self.required_primary
+            && info.primary != Some(*required) {
                 return Ok(false);
             }
-        }
 
         // Check primary percentage
-        if let Some(min_pct) = self.min_primary_percentage {
-            if info.primary_percentage < min_pct {
+        if let Some(min_pct) = self.min_primary_percentage
+            && info.primary_percentage < min_pct {
                 return Ok(false);
             }
-        }
 
         // Check required any
         if !self.required_any.is_empty() {
@@ -399,17 +397,15 @@ impl LanguageInfo {
 
             if path.is_dir() {
                 Self::walk_directory(&path, languages)?;
-            } else if path.is_file() {
-                if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+            } else if path.is_file()
+                && let Some(ext) = path.extension().and_then(|e| e.to_str()) {
                     let lang = ProgrammingLanguage::from_extension(ext);
-                    if lang != ProgrammingLanguage::Other && !lang.is_markup() {
-                        if let Ok(content) = std::fs::read_to_string(&path) {
+                    if lang != ProgrammingLanguage::Other && !lang.is_markup()
+                        && let Ok(content) = std::fs::read_to_string(&path) {
                             let line_count = content.lines().count();
                             *languages.entry(lang).or_insert(0) += line_count;
                         }
-                    }
                 }
-            }
         }
 
         Ok(())

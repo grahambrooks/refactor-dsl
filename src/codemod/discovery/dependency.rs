@@ -43,8 +43,10 @@ pub enum PackageManager {
 
 /// Version constraint for dependency matching.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default)]
 pub enum VersionConstraint {
     /// Any version.
+    #[default]
     Any,
     /// Exact version.
     Exact(String),
@@ -60,11 +62,6 @@ pub enum VersionConstraint {
     Caret(String),
 }
 
-impl Default for VersionConstraint {
-    fn default() -> Self {
-        Self::Any
-    }
-}
 
 impl VersionConstraint {
     /// Parse a version constraint string.
@@ -75,20 +72,20 @@ impl VersionConstraint {
             return Self::Any;
         }
 
-        if s.starts_with(">=") {
-            return Self::AtLeast(s[2..].trim().to_string());
+        if let Some(rest) = s.strip_prefix(">=") {
+            return Self::AtLeast(rest.trim().to_string());
         }
-        if s.starts_with("<=") {
-            return Self::AtMost(s[2..].trim().to_string());
+        if let Some(rest) = s.strip_prefix("<=") {
+            return Self::AtMost(rest.trim().to_string());
         }
-        if s.starts_with('~') {
-            return Self::Compatible(s[1..].trim().to_string());
+        if let Some(rest) = s.strip_prefix('~') {
+            return Self::Compatible(rest.trim().to_string());
         }
-        if s.starts_with('^') {
-            return Self::Caret(s[1..].trim().to_string());
+        if let Some(rest) = s.strip_prefix('^') {
+            return Self::Caret(rest.trim().to_string());
         }
-        if s.starts_with('=') {
-            return Self::Exact(s[1..].trim().to_string());
+        if let Some(rest) = s.strip_prefix('=') {
+            return Self::Exact(rest.trim().to_string());
         }
 
         // Check for range
@@ -210,11 +207,10 @@ impl DependencyFilter {
         // Detect package manager if not specified
         let detected = self.detect_package_managers(repo_path);
 
-        if let Some(required_pm) = &self.package_manager {
-            if !detected.contains(required_pm) {
+        if let Some(required_pm) = &self.package_manager
+            && !detected.contains(required_pm) {
                 return Ok(false);
             }
-        }
 
         // Check dependencies for each detected package manager
         for pm in &detected {
@@ -291,11 +287,10 @@ impl DependencyFilter {
     fn has_csproj(&self, repo_path: &Path) -> bool {
         if let Ok(entries) = std::fs::read_dir(repo_path) {
             for entry in entries.flatten() {
-                if let Some(ext) = entry.path().extension() {
-                    if ext == "csproj" {
+                if let Some(ext) = entry.path().extension()
+                    && ext == "csproj" {
                         return true;
                     }
-                }
             }
         }
         false
@@ -370,11 +365,10 @@ impl DependencyFilter {
             let after = &table[ver_pos + 7..];
             if let Some(eq_pos) = after.find('=') {
                 let value = after[eq_pos + 1..].trim();
-                if value.starts_with('"') {
-                    if let Some(end) = value[1..].find('"') {
+                if value.starts_with('"')
+                    && let Some(end) = value[1..].find('"') {
                         return value[1..end + 1].to_string();
                     }
-                }
             }
         }
         "*".to_string()
@@ -451,8 +445,8 @@ impl DependencyFilter {
 
         // Also try pyproject.toml
         let pyproject_path = repo_path.join("pyproject.toml");
-        if let Ok(content) = std::fs::read_to_string(&pyproject_path) {
-            if let Some(deps_start) = content.find("dependencies") {
+        if let Ok(content) = std::fs::read_to_string(&pyproject_path)
+            && let Some(deps_start) = content.find("dependencies") {
                 let after = &content[deps_start..];
                 if let Some(bracket_start) = after.find('[') {
                     let after_bracket = &after[bracket_start + 1..];
@@ -460,7 +454,7 @@ impl DependencyFilter {
                         let deps_section = &after_bracket[..bracket_end];
                         for item in deps_section.split(',') {
                             let item = item.trim().trim_matches('"').trim_matches('\'');
-                            if let Some(op_pos) = item.find(|c: char| c == '>' || c == '<' || c == '=' || c == '~') {
+                            if let Some(op_pos) = item.find(['>', '<', '=', '~']) {
                                 let name = item[..op_pos].to_string();
                                 let version = item[op_pos..].to_string();
                                 deps.insert(name, version);
@@ -471,7 +465,6 @@ impl DependencyFilter {
                     }
                 }
             }
-        }
 
         Ok(deps)
     }
@@ -550,12 +543,11 @@ impl DependencyFilter {
 
                     // implementation 'group:artifact:version'
                     // implementation("group:artifact:version")
-                    if line.starts_with("implementation")
+                    if (line.starts_with("implementation")
                         || line.starts_with("api")
                         || line.starts_with("compile")
-                        || line.starts_with("testImplementation")
-                    {
-                        if let Some(dep) = self.extract_gradle_dep(line) {
+                        || line.starts_with("testImplementation"))
+                        && let Some(dep) = self.extract_gradle_dep(line) {
                             let parts: Vec<&str> = dep.split(':').collect();
                             if parts.len() >= 2 {
                                 let name = format!("{}:{}", parts[0], parts[1]);
@@ -563,7 +555,6 @@ impl DependencyFilter {
                                 deps.insert(name, version);
                             }
                         }
-                    }
                 }
             }
         }
@@ -574,7 +565,7 @@ impl DependencyFilter {
     /// Extract dependency from Gradle line.
     fn extract_gradle_dep(&self, line: &str) -> Option<String> {
         // Look for quoted string
-        let start = line.find(|c| c == '\'' || c == '"')?;
+        let start = line.find(['\'', '"'])?;
         let quote = line.chars().nth(start)?;
         let after = &line[start + 1..];
         let end = after.find(quote)?;
@@ -589,8 +580,8 @@ impl DependencyFilter {
         if let Ok(content) = std::fs::read_to_string(&gemfile_path) {
             for line in content.lines() {
                 let line = line.trim();
-                if line.starts_with("gem ") {
-                    let after_gem = &line[4..].trim();
+                if let Some(after_gem) = line.strip_prefix("gem ") {
+                    let after_gem = after_gem.trim();
                     let parts: Vec<&str> = after_gem.split(',').collect();
                     if !parts.is_empty() {
                         let name = parts[0].trim().trim_matches(|c| c == '\'' || c == '"').to_string();
@@ -646,21 +637,19 @@ impl DependencyFilter {
         // Check .csproj files
         if let Ok(entries) = std::fs::read_dir(repo_path) {
             for entry in entries.flatten() {
-                if entry.path().extension().map_or(false, |e| e == "csproj") {
-                    if let Ok(content) = std::fs::read_to_string(entry.path()) {
+                if entry.path().extension().is_some_and(|e| e == "csproj")
+                    && let Ok(content) = std::fs::read_to_string(entry.path()) {
                         for line in content.lines() {
                             // <PackageReference Include="Name" Version="1.0.0" />
-                            if line.contains("PackageReference") {
-                                if let (Some(name), Some(version)) = (
+                            if line.contains("PackageReference")
+                                && let (Some(name), Some(version)) = (
                                     self.extract_xml_attr(line, "Include"),
                                     self.extract_xml_attr(line, "Version"),
                                 ) {
                                     deps.insert(name, version);
                                 }
-                            }
                         }
                     }
-                }
             }
         }
 

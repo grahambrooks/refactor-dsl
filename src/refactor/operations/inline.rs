@@ -174,8 +174,8 @@ impl InlineVariable {
 
         while let Some(m) = matches.next() {
             for capture in m.captures {
-                if let Ok(text) = capture.node.utf8_text(source_bytes) {
-                    if text == var_name {
+                if let Ok(text) = capture.node.utf8_text(source_bytes)
+                    && text == var_name {
                         let range = Range {
                             start: Position {
                                 line: capture.node.start_position().row as u32,
@@ -209,7 +209,6 @@ impl InlineVariable {
                             }
                         }
                     }
-                }
             }
         }
 
@@ -564,14 +563,13 @@ impl InlineFunction {
                 }
             }
 
-            if let (Some(n), Some(range)) = (name, call_range) {
-                if n == func_name {
+            if let (Some(n), Some(range)) = (name, call_range)
+                && n == func_name {
                     calls.push(CallInfo {
                         args: args.unwrap_or("()").to_string(),
                         range,
                     });
                 }
-            }
         }
 
         Ok(calls)

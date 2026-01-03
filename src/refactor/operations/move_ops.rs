@@ -1,6 +1,6 @@
 //! Move refactoring operations.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use streaming_iterator::StreamingIterator;
 use tree_sitter::QueryCursor;
@@ -218,7 +218,8 @@ impl MoveToFile {
     }
 
     /// Generate import statement for the target file.
-    fn generate_import(&self, symbol_name: &str, from_file: &PathBuf, lang_name: &str) -> String {
+    #[allow(dead_code)]
+    fn generate_import(&self, symbol_name: &str, from_file: &Path, lang_name: &str) -> String {
         let module_path = self.file_to_module_path(from_file, lang_name);
 
         match lang_name {
@@ -239,7 +240,7 @@ impl MoveToFile {
     fn generate_reexport(
         &self,
         symbol_name: &str,
-        target_file: &PathBuf,
+        target_file: &Path,
         lang_name: &str,
     ) -> String {
         let module_path = self.file_to_module_path(target_file, lang_name);
@@ -255,7 +256,7 @@ impl MoveToFile {
     }
 
     /// Convert file path to module path.
-    fn file_to_module_path(&self, file: &PathBuf, lang_name: &str) -> String {
+    fn file_to_module_path(&self, file: &Path, lang_name: &str) -> String {
         let stem = file.file_stem().and_then(|s| s.to_str()).unwrap_or("");
 
         match lang_name {
@@ -526,11 +527,10 @@ impl MoveBetweenModules {
                     }
                 }
 
-                if let Some(n) = name {
-                    if mod_start <= cursor_line && cursor_line <= mod_end {
+                if let Some(n) = name
+                    && mod_start <= cursor_line && cursor_line <= mod_end {
                         containing_mod = Some(n.to_string());
                     }
-                }
             }
 
             return Ok(containing_mod);

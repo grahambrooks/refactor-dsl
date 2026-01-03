@@ -344,7 +344,7 @@ impl BindingTracker {
             {
                 // Calculate depth
                 let depth = self.scope_depth(*id);
-                if best_scope.map_or(true, |(_, d)| depth > d) {
+                if best_scope.is_none_or(|(_, d)| depth > d) {
                     best_scope = Some((*id, depth));
                 }
             }

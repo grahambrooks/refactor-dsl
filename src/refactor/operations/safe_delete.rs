@@ -228,8 +228,8 @@ impl SafeDelete {
 
         while let Some(m) = matches.next() {
             for capture in m.captures {
-                if let Ok(text) = capture.node.utf8_text(source_bytes) {
-                    if text == symbol_name {
+                if let Ok(text) = capture.node.utf8_text(source_bytes)
+                    && text == symbol_name {
                         let node = capture.node;
                         let range = Range {
                             start: Position {
@@ -259,7 +259,6 @@ impl SafeDelete {
                             }
                         }
                     }
-                }
             }
         }
 
@@ -321,11 +320,10 @@ impl SafeDelete {
                         }
                     }
 
-                    if let (Some(t), Some(r)) = (type_name, impl_range) {
-                        if t == symbol_name {
+                    if let (Some(t), Some(r)) = (type_name, impl_range)
+                        && t == symbol_name {
                             related.push(r);
                         }
-                    }
                 }
             }
         }

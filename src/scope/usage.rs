@@ -267,11 +267,10 @@ impl UsageAnalyzer {
 
         for reference in &references {
             let resolved = self.index.resolve(reference);
-            if let Some(binding) = resolved.binding {
-                if binding.file != file && resolved.confidence >= ResolutionConfidence::Medium {
+            if let Some(binding) = resolved.binding
+                && binding.file != file && resolved.confidence >= ResolutionConfidence::Medium {
                     dependencies.insert(binding.file.clone());
                 }
-            }
         }
 
         dependencies

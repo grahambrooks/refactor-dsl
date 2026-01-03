@@ -224,7 +224,7 @@ impl ReferenceIndex {
 
         for binding in candidates {
             let score = self.score_candidate(reference, binding);
-            if best.as_ref().map_or(true, |(_, s)| score > *s) {
+            if best.as_ref().is_none_or(|(_, s)| score > *s) {
                 best = Some((binding.clone(), score));
             }
         }

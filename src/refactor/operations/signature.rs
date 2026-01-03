@@ -300,11 +300,10 @@ impl ChangeSignature {
             }
         }
 
-        if !current.is_empty() {
-            if let Some(p) = self.parse_single_parameter(&current, lang_name) {
+        if !current.is_empty()
+            && let Some(p) = self.parse_single_parameter(&current, lang_name) {
                 params.push(p);
             }
-        }
 
         params
     }
@@ -577,14 +576,13 @@ impl ChangeSignature {
                 }
             }
 
-            if let (Some(n), Some(at), Some(ar)) = (name, args_text, args_range) {
-                if n == func_name {
+            if let (Some(n), Some(at), Some(ar)) = (name, args_text, args_range)
+                && n == func_name {
                     call_sites.push(CallSite {
                         args_text: at.to_string(),
                         args_range: ar,
                     });
                 }
-            }
         }
 
         Ok(call_sites)
@@ -597,6 +595,7 @@ struct FunctionSignature {
     name: String,
     parameters: Vec<Parameter>,
     params_range: Range,
+    #[allow(dead_code)]
     return_type: Option<String>,
     #[allow(dead_code)]
     function_range: Range,
