@@ -205,7 +205,7 @@ pub struct TypeInfo {
     /// Generic type arguments.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub generic_args: Vec<TypeInfo>,
-    /// Whether this is an optional type (T | undefined, Option<T>).
+    /// Whether this is an optional type (`T | undefined`, `Option<T>`).
     #[serde(default)]
     pub is_optional: bool,
     /// Whether this is a reference type.
