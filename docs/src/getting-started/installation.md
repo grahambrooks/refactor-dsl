@@ -20,8 +20,10 @@ The prelude includes all commonly used types:
 - `Refactor`, `MultiRepoRefactor`, `RefactorResult`
 - `Matcher`, `FileMatcher`, `GitMatcher`, `AstMatcher`
 - `Transform`, `TransformBuilder`, `TextTransform`, `AstTransform`
-- `Language`, `LanguageRegistry`, `Rust`, `TypeScript`, `Python`
+- `Language`, `LanguageRegistry`, `Rust`, `TypeScript`, `Python`, `Go`, `Java`, `CSharp`, `Ruby`
 - `LspClient`, `LspRegistry`, `LspRename`, `LspInstaller`
+- Refactoring: `ExtractFunction`, `InlineVariable`, `MoveToFile`, `ChangeSignature`, `SafeDelete`, `FindDeadCode`
+- Discovery: `DependencyFilter`, `FrameworkFilter`, `MetricFilter`, `LanguageFilter`
 - `RefactorError`, `Result`
 
 ## As a CLI Tool
@@ -66,6 +68,9 @@ For semantic refactoring (rename, find references), you'll need language servers
 | TypeScript | typescript-language-server | `npm i -g typescript-language-server` |
 | Python | pyright | `npm i -g pyright` |
 | Go | gopls | `go install golang.org/x/tools/gopls@latest` |
+| Java | jdtls | Eclipse JDT Language Server |
+| C# | omnisharp | `dotnet tool install -g OmniSharp` |
+| Ruby | solargraph | `gem install solargraph` |
 | C/C++ | clangd | System package manager |
 
 Or use auto-installation from the Mason registry (see [LSP Auto-Installation](../lsp/auto-install.md)).

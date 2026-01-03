@@ -21,6 +21,24 @@
 
 - [Languages](./languages.md)
 
+# Refactoring Operations
+
+- [Overview](./refactoring/README.md)
+  - [Extract](./refactoring/extract.md)
+  - [Inline](./refactoring/inline.md)
+  - [Move](./refactoring/move.md)
+  - [Change Signature](./refactoring/signature.md)
+  - [Safe Delete](./refactoring/safe-delete.md)
+  - [Find Dead Code](./refactoring/dead-code.md)
+
+# Repository Discovery
+
+- [Enhanced Discovery](./discovery/README.md)
+  - [Dependency Filters](./discovery/dependency.md)
+  - [Framework Filters](./discovery/framework.md)
+  - [Metrics Filters](./discovery/metrics.md)
+  - [Language Filters](./discovery/language.md)
+
 # Advanced
 
 - [LSP Integration](./lsp/README.md)

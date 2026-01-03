@@ -244,6 +244,275 @@ Negated versions:
 "(type) @type_annotation"
 ```
 
+### Go
+
+```rust
+// Function declarations
+"(function_declaration name: (identifier) @fn)"
+
+// Method declarations (with receiver)
+"(method_declaration
+  receiver: (parameter_list) @receiver
+  name: (field_identifier) @method)"
+
+// Struct types
+"(type_declaration
+  (type_spec name: (type_identifier) @struct type: (struct_type)))"
+
+// Interface types
+"(type_declaration
+  (type_spec name: (type_identifier) @interface type: (interface_type)))"
+
+// Package declaration
+"(package_clause (package_identifier) @package)"
+
+// Import declarations
+"(import_declaration) @import"
+"(import_spec path: (interpreted_string_literal) @path)"
+
+// Function calls
+"(call_expression function: (identifier) @fn)"
+
+// Method calls
+"(call_expression function: (selector_expression field: (field_identifier) @method))"
+
+// Struct literals
+"(composite_literal type: (type_identifier) @struct_type)"
+
+// Variable declarations
+"(var_declaration) @var"
+"(short_var_declaration left: (expression_list (identifier) @var))"
+
+// Constants
+"(const_declaration) @const"
+
+// Go routines
+"(go_statement) @goroutine"
+
+// Defer statements
+"(defer_statement) @defer"
+
+// Error handling pattern
+"(if_statement
+  condition: (binary_expression
+    left: (identifier) @err
+    right: (nil))
+  (#eq? @err \"err\"))"
+```
+
+### Java
+
+```rust
+// Class declarations
+"(class_declaration name: (identifier) @class)"
+
+// Interface declarations
+"(interface_declaration name: (identifier) @interface)"
+
+// Enum declarations
+"(enum_declaration name: (identifier) @enum)"
+
+// Method declarations
+"(method_declaration name: (identifier) @method)"
+
+// Constructor declarations
+"(constructor_declaration name: (identifier) @constructor)"
+
+// Field declarations
+"(field_declaration declarator: (variable_declarator name: (identifier) @field))"
+
+// Package declaration
+"(package_declaration) @package"
+
+// Import statements
+"(import_declaration) @import"
+
+// Annotations
+"(annotation name: (identifier) @annotation)"
+"(marker_annotation name: (identifier) @annotation)"
+
+// Static methods
+"(method_declaration
+  (modifiers (static))
+  name: (identifier) @static_method)"
+
+// Abstract methods
+"(method_declaration
+  (modifiers (abstract))
+  name: (identifier) @abstract_method)"
+
+// Lambda expressions
+"(lambda_expression) @lambda"
+
+// Method invocations
+"(method_invocation name: (identifier) @call)"
+
+// Object creation
+"(object_creation_expression type: (type_identifier) @type)"
+
+// Try-catch blocks
+"(try_statement) @try"
+"(catch_clause) @catch"
+
+// Spring annotations
+"((annotation name: (identifier) @ann)
+  (#match? @ann \"^(Controller|Service|Repository|Component|Autowired)\"))"
+```
+
+### C#
+
+```rust
+// Class declarations
+"(class_declaration name: (identifier) @class)"
+
+// Interface declarations
+"(interface_declaration name: (identifier) @interface)"
+
+// Struct declarations
+"(struct_declaration name: (identifier) @struct)"
+
+// Record declarations (C# 9+)
+"(record_declaration name: (identifier) @record)"
+
+// Enum declarations
+"(enum_declaration name: (identifier) @enum)"
+
+// Method declarations
+"(method_declaration name: (identifier) @method)"
+
+// Property declarations
+"(property_declaration name: (identifier) @property)"
+
+// Field declarations
+"(field_declaration (variable_declaration
+  (variable_declarator (identifier) @field)))"
+
+// Constructor declarations
+"(constructor_declaration name: (identifier) @constructor)"
+
+// Namespace declarations
+"(namespace_declaration name: (_) @namespace)"
+
+// Using directives
+"(using_directive) @using"
+
+// Attributes
+"(attribute name: (identifier) @attribute)"
+
+// Async methods
+"(method_declaration
+  (modifier (async))
+  name: (identifier) @async_method)"
+
+// Static methods
+"(method_declaration
+  (modifier (static))
+  name: (identifier) @static_method)"
+
+// Lambda expressions
+"(lambda_expression) @lambda"
+
+// LINQ queries
+"(query_expression) @linq"
+
+// Method invocations
+"(invocation_expression
+  function: (member_access_expression name: (identifier) @call))"
+
+// Object creation
+"(object_creation_expression type: (identifier) @type)"
+
+// Pattern matching
+"(switch_expression) @switch_expression"
+"(is_pattern_expression) @is_pattern"
+
+// Null-conditional access
+"(conditional_access_expression) @null_conditional"
+
+// ASP.NET attributes
+"((attribute name: (identifier) @attr)
+  (#match? @attr \"^(HttpGet|HttpPost|Route|Authorize|ApiController)\"))"
+```
+
+### Ruby
+
+```rust
+// Class definitions
+"(class name: (constant) @class)"
+
+// Module definitions
+"(module name: (constant) @module)"
+
+// Method definitions
+"(method name: (identifier) @method)"
+
+// Singleton method definitions (class methods)
+"(singleton_method name: (identifier) @class_method)"
+
+// Blocks
+"(block) @block"
+"(do_block) @do_block"
+
+// Lambda expressions
+"(lambda) @lambda"
+
+// Require statements
+"(call method: (identifier) @req (#eq? @req \"require\"))"
+"(call method: (identifier) @req (#eq? @req \"require_relative\"))"
+
+// Include/extend
+"(call method: (identifier) @inc (#eq? @inc \"include\"))"
+"(call method: (identifier) @ext (#eq? @ext \"extend\"))"
+
+// Attr accessors
+"(call method: (identifier) @attr (#match? @attr \"^attr_\"))"
+
+// Instance variables
+"(instance_variable) @ivar"
+
+// Class variables
+"(class_variable) @cvar"
+
+// Constants
+"(constant) @const"
+
+// Symbols
+"(simple_symbol) @symbol"
+"(hash_key_symbol) @symbol"
+
+// Method calls
+"(call method: (identifier) @call)"
+
+// Method calls with receiver
+"(call
+  receiver: (_)
+  method: (identifier) @method_call)"
+
+// Rescue blocks
+"(rescue) @rescue"
+"(ensure) @ensure"
+
+// Yield
+"(yield) @yield"
+
+// Rails-specific patterns
+// Model callbacks
+"((call method: (identifier) @cb)
+  (#match? @cb \"^(before_|after_|around_)\"))"
+
+// Associations
+"((call method: (identifier) @assoc)
+  (#match? @assoc \"^(has_many|has_one|belongs_to|has_and_belongs_to_many)\"))"
+
+// Validations
+"((call method: (identifier) @val)
+  (#match? @val \"^validates\"))"
+
+// Controller actions
+"(method name: (identifier) @action
+  (#match? @action \"^(index|show|new|create|edit|update|destroy)\"))"
+```
+
 ## Query Debugging
 
 ### Using tree-sitter CLI
@@ -348,3 +617,7 @@ for m in matches {
   - [tree-sitter-rust](https://github.com/tree-sitter/tree-sitter-rust)
   - [tree-sitter-typescript](https://github.com/tree-sitter/tree-sitter-typescript)
   - [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python)
+  - [tree-sitter-go](https://github.com/tree-sitter/tree-sitter-go)
+  - [tree-sitter-java](https://github.com/tree-sitter/tree-sitter-java)
+  - [tree-sitter-c-sharp](https://github.com/tree-sitter/tree-sitter-c-sharp)
+  - [tree-sitter-ruby](https://github.com/tree-sitter/tree-sitter-ruby)
