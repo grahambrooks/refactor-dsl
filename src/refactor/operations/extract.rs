@@ -9,10 +9,10 @@ use crate::error::Result;
 use crate::lang::Language;
 use crate::lsp::{Position, Range};
 
+use super::RefactoringOperation;
 use super::context::{
     RefactoringContext, RefactoringPreview, RefactoringResult, TextEdit, ValidationResult,
 };
-use super::RefactoringOperation;
 
 /// Visibility level for extracted items.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -179,14 +179,36 @@ impl ExtractFunction {
         // Filter out common keywords and patterns
         let keywords: &[&str] = match lang_name {
             "rust" => &[
-                "fn", "let", "mut", "if", "else", "for", "while", "loop", "match", "return", "self",
-                "Self", "true", "false", "pub", "use", "mod", "struct", "enum", "impl", "trait",
-                "where", "async", "await", "move", "ref", "static", "const", "type", "dyn", "unsafe",
+                "fn", "let", "mut", "if", "else", "for", "while", "loop", "match", "return",
+                "self", "Self", "true", "false", "pub", "use", "mod", "struct", "enum", "impl",
+                "trait", "where", "async", "await", "move", "ref", "static", "const", "type",
+                "dyn", "unsafe",
             ],
             "typescript" | "javascript" => &[
-                "function", "let", "const", "var", "if", "else", "for", "while", "return", "this",
-                "true", "false", "null", "undefined", "class", "interface", "type", "export",
-                "import", "async", "await", "new", "typeof", "instanceof",
+                "function",
+                "let",
+                "const",
+                "var",
+                "if",
+                "else",
+                "for",
+                "while",
+                "return",
+                "this",
+                "true",
+                "false",
+                "null",
+                "undefined",
+                "class",
+                "interface",
+                "type",
+                "export",
+                "import",
+                "async",
+                "await",
+                "new",
+                "typeof",
+                "instanceof",
             ],
             "python" => &[
                 "def", "class", "if", "else", "elif", "for", "while", "return", "self", "True",
@@ -194,31 +216,131 @@ impl ExtractFunction {
                 "lambda", "yield", "async", "await", "pass", "break", "continue",
             ],
             "go" => &[
-                "func", "var", "const", "if", "else", "for", "range", "return", "true", "false",
-                "nil", "type", "struct", "interface", "package", "import", "go", "defer", "select",
-                "chan", "map", "make", "new", "append", "len", "cap",
+                "func",
+                "var",
+                "const",
+                "if",
+                "else",
+                "for",
+                "range",
+                "return",
+                "true",
+                "false",
+                "nil",
+                "type",
+                "struct",
+                "interface",
+                "package",
+                "import",
+                "go",
+                "defer",
+                "select",
+                "chan",
+                "map",
+                "make",
+                "new",
+                "append",
+                "len",
+                "cap",
             ],
             "java" => &[
-                "class", "interface", "public", "private", "protected", "static", "final", "void",
-                "if", "else", "for", "while", "return", "this", "super", "new", "true", "false",
-                "null", "try", "catch", "finally", "throw", "throws", "import", "package",
+                "class",
+                "interface",
+                "public",
+                "private",
+                "protected",
+                "static",
+                "final",
+                "void",
+                "if",
+                "else",
+                "for",
+                "while",
+                "return",
+                "this",
+                "super",
+                "new",
+                "true",
+                "false",
+                "null",
+                "try",
+                "catch",
+                "finally",
+                "throw",
+                "throws",
+                "import",
+                "package",
             ],
             "csharp" => &[
-                "class", "interface", "public", "private", "protected", "internal", "static",
-                "void", "if", "else", "for", "foreach", "while", "return", "this", "base", "new",
-                "true", "false", "null", "try", "catch", "finally", "throw", "using", "namespace",
-                "async", "await", "var",
+                "class",
+                "interface",
+                "public",
+                "private",
+                "protected",
+                "internal",
+                "static",
+                "void",
+                "if",
+                "else",
+                "for",
+                "foreach",
+                "while",
+                "return",
+                "this",
+                "base",
+                "new",
+                "true",
+                "false",
+                "null",
+                "try",
+                "catch",
+                "finally",
+                "throw",
+                "using",
+                "namespace",
+                "async",
+                "await",
+                "var",
             ],
             "ruby" => &[
-                "def", "class", "module", "if", "else", "elsif", "unless", "for", "while", "until",
-                "return", "self", "true", "false", "nil", "do", "end", "begin", "rescue", "ensure",
-                "yield", "super", "require", "include", "extend", "attr_reader", "attr_writer",
+                "def",
+                "class",
+                "module",
+                "if",
+                "else",
+                "elsif",
+                "unless",
+                "for",
+                "while",
+                "until",
+                "return",
+                "self",
+                "true",
+                "false",
+                "nil",
+                "do",
+                "end",
+                "begin",
+                "rescue",
+                "ensure",
+                "yield",
+                "super",
+                "require",
+                "include",
+                "extend",
+                "attr_reader",
+                "attr_writer",
                 "attr_accessor",
             ],
             _ => &[],
         };
 
-        !keywords.contains(&name) && !name.is_empty() && name.chars().next().is_some_and(|c| c.is_alphabetic() || c == '_')
+        !keywords.contains(&name)
+            && !name.is_empty()
+            && name
+                .chars()
+                .next()
+                .is_some_and(|c| c.is_alphabetic() || c == '_')
     }
 
     /// Generate the function signature.
@@ -258,7 +380,9 @@ impl ExtractFunction {
 
         match lang_name {
             "rust" => {
-                let ret = return_type.map(|t| format!(" -> {}", t)).unwrap_or_default();
+                let ret = return_type
+                    .map(|t| format!(" -> {}", t))
+                    .unwrap_or_default();
                 format!("{}{}fn {}({}){}", vis, async_kw, name, param_str, ret)
             }
             "typescript" | "javascript" => {
@@ -266,7 +390,9 @@ impl ExtractFunction {
                 format!("{}{}function {}({}){}", vis, async_kw, name, param_str, ret)
             }
             "python" => {
-                let ret = return_type.map(|t| format!(" -> {}", t)).unwrap_or_default();
+                let ret = return_type
+                    .map(|t| format!(" -> {}", t))
+                    .unwrap_or_default();
                 format!("{}def {}({}){}:", async_kw, name, param_str, ret)
             }
             "go" => {
@@ -358,7 +484,12 @@ impl RefactoringOperation for ExtractFunction {
         }
 
         // Check for valid identifier
-        if !self.name.chars().next().is_some_and(|c| c.is_alphabetic() || c == '_') {
+        if !self
+            .name
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_alphabetic() || c == '_')
+        {
             return Ok(ValidationResult::invalid(
                 "Function name must start with a letter or underscore",
             ));
@@ -368,10 +499,8 @@ impl RefactoringOperation for ExtractFunction {
     }
 
     fn preview(&self, ctx: &RefactoringContext) -> Result<RefactoringPreview> {
-        let mut preview = RefactoringPreview::new(format!(
-            "Extract selection into function '{}'",
-            self.name
-        ));
+        let mut preview =
+            RefactoringPreview::new(format!("Extract selection into function '{}'", self.name));
 
         let lang = ctx.language().ok_or_else(|| {
             crate::error::RefactorError::InvalidConfig("No language detected".to_string())
@@ -451,12 +580,11 @@ impl RefactoringOperation for ExtractFunction {
         std::fs::write(&ctx.target_file, &new_source)?;
         ctx.source = new_source;
 
-        Ok(RefactoringResult::success(format!(
-            "Extracted function '{}'",
-            self.name
-        ))
-        .with_file(ctx.target_file.clone())
-        .with_edits(edits))
+        Ok(
+            RefactoringResult::success(format!("Extracted function '{}'", self.name))
+                .with_file(ctx.target_file.clone())
+                .with_edits(edits),
+        )
     }
 }
 
@@ -603,7 +731,12 @@ impl RefactoringOperation for ExtractVariable {
         }
 
         // Check for valid identifier
-        if !self.name.chars().next().is_some_and(|c| c.is_alphabetic() || c == '_') {
+        if !self
+            .name
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_alphabetic() || c == '_')
+        {
             return Ok(ValidationResult::invalid(
                 "Variable name must start with a letter or underscore",
             ));
@@ -613,10 +746,8 @@ impl RefactoringOperation for ExtractVariable {
     }
 
     fn preview(&self, ctx: &RefactoringContext) -> Result<RefactoringPreview> {
-        let mut preview = RefactoringPreview::new(format!(
-            "Extract expression into variable '{}'",
-            self.name
-        ));
+        let mut preview =
+            RefactoringPreview::new(format!("Extract expression into variable '{}'", self.name));
 
         let lang = ctx.language().ok_or_else(|| {
             crate::error::RefactorError::InvalidConfig("No language detected".to_string())
@@ -690,12 +821,11 @@ impl RefactoringOperation for ExtractVariable {
         std::fs::write(&ctx.target_file, &new_source)?;
         ctx.source = new_source;
 
-        Ok(RefactoringResult::success(format!(
-            "Extracted variable '{}'",
-            self.name
-        ))
-        .with_file(ctx.target_file.clone())
-        .with_edits(edits))
+        Ok(
+            RefactoringResult::success(format!("Extracted variable '{}'", self.name))
+                .with_file(ctx.target_file.clone())
+                .with_edits(edits),
+        )
     }
 }
 
@@ -775,10 +905,8 @@ impl RefactoringOperation for ExtractConstant {
     }
 
     fn preview(&self, ctx: &RefactoringContext) -> Result<RefactoringPreview> {
-        let mut preview = RefactoringPreview::new(format!(
-            "Extract expression into constant '{}'",
-            self.name
-        ));
+        let mut preview =
+            RefactoringPreview::new(format!("Extract expression into constant '{}'", self.name));
 
         let lang = ctx.language().ok_or_else(|| {
             crate::error::RefactorError::InvalidConfig("No language detected".to_string())
@@ -860,12 +988,11 @@ impl RefactoringOperation for ExtractConstant {
         std::fs::write(&ctx.target_file, &new_source)?;
         ctx.source = new_source;
 
-        Ok(RefactoringResult::success(format!(
-            "Extracted constant '{}'",
-            self.name
-        ))
-        .with_file(ctx.target_file.clone())
-        .with_edits(edits))
+        Ok(
+            RefactoringResult::success(format!("Extracted constant '{}'", self.name))
+                .with_file(ctx.target_file.clone())
+                .with_edits(edits),
+        )
     }
 }
 

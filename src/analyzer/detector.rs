@@ -136,16 +136,21 @@ impl ChangeDetector {
                     continue;
                 }
 
-                changes.push(ApiChange::new(
-                    ChangeKind::ApiRemoved {
-                        name: name.clone(),
-                        api_type: old_sig.kind,
-                    },
-                    old_sig.location.file.clone(),
-                ).with_original(name.clone())
-                .with_metadata(ChangeMetadata::breaking(
-                    format!("{} '{}' was removed", old_sig.kind.name(), name)
-                )));
+                changes.push(
+                    ApiChange::new(
+                        ChangeKind::ApiRemoved {
+                            name: name.clone(),
+                            api_type: old_sig.kind,
+                        },
+                        old_sig.location.file.clone(),
+                    )
+                    .with_original(name.clone())
+                    .with_metadata(ChangeMetadata::breaking(format!(
+                        "{} '{}' was removed",
+                        old_sig.kind.name(),
+                        name
+                    ))),
+                );
             }
         }
 
@@ -153,9 +158,7 @@ impl ChangeDetector {
         changes.sort_by(|a, b| {
             a.file_path
                 .cmp(&b.file_path)
-                .then_with(|| {
-                    a.metadata.old_line.cmp(&b.metadata.old_line)
-                })
+                .then_with(|| a.metadata.old_line.cmp(&b.metadata.old_line))
         });
 
         changes
@@ -225,10 +228,7 @@ impl ChangeDetector {
                 } else {
                     Severity::Warning
                 },
-                migration_notes: Some(format!(
-                    "Function '{}' signature changed",
-                    old_sig.name
-                )),
+                migration_notes: Some(format!("Function '{}' signature changed", old_sig.name)),
             }),
         )
     }
@@ -411,12 +411,14 @@ impl ChangeDetector {
                 new_name: new_sig.name.clone(),
                 module_path: old_sig.module_path.clone(),
             },
-            ApiType::Class | ApiType::Struct | ApiType::Enum | ApiType::Interface | ApiType::TypeAlias => {
-                ChangeKind::TypeRenamed {
-                    old_name: old_sig.name.clone(),
-                    new_name: new_sig.name.clone(),
-                }
-            }
+            ApiType::Class
+            | ApiType::Struct
+            | ApiType::Enum
+            | ApiType::Interface
+            | ApiType::TypeAlias => ChangeKind::TypeRenamed {
+                old_name: old_sig.name.clone(),
+                new_name: new_sig.name.clone(),
+            },
             _ => ChangeKind::FunctionRenamed {
                 old_name: old_sig.name.clone(),
                 new_name: new_sig.name.clone(),
@@ -521,10 +523,7 @@ mod tests {
 
     fn make_fn(name: &str, params: Vec<&str>) -> ApiSignature {
         let loc = SourceLocation::new("test.rs", 1, 1);
-        let params = params
-            .into_iter()
-            .map(|n| Parameter::new(n))
-            .collect();
+        let params = params.into_iter().map(|n| Parameter::new(n)).collect();
 
         ApiSignature::function(name, loc)
             .with_params(params)
@@ -699,17 +698,21 @@ mod tests {
         let mut old_apis = HashMap::new();
         old_apis.insert(
             PathBuf::from("types.rs"),
-            vec![ApiSignature::type_def("UserData", ApiType::Struct, loc.clone())
-                .with_visibility(Visibility::Public)
-                .exported(true)],
+            vec![
+                ApiSignature::type_def("UserData", ApiType::Struct, loc.clone())
+                    .with_visibility(Visibility::Public)
+                    .exported(true),
+            ],
         );
 
         let mut new_apis = HashMap::new();
         new_apis.insert(
             PathBuf::from("types.rs"),
-            vec![ApiSignature::type_def("UserInfo", ApiType::Struct, loc)
-                .with_visibility(Visibility::Public)
-                .exported(true)],
+            vec![
+                ApiSignature::type_def("UserInfo", ApiType::Struct, loc)
+                    .with_visibility(Visibility::Public)
+                    .exported(true),
+            ],
         );
 
         let changes = detector.detect(&old_apis, &new_apis);

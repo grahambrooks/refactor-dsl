@@ -11,10 +11,10 @@ use crate::error::{RefactorError, Result};
 use crate::lang::Language;
 use crate::lsp::{Position, Range};
 
+use super::RefactoringOperation;
 use super::context::{
     RefactoringContext, RefactoringPreview, RefactoringResult, TextEdit, ValidationResult,
 };
-use super::RefactoringOperation;
 
 /// Find and report dead code in a codebase.
 #[derive(Debug, Clone)]
@@ -177,7 +177,13 @@ impl FindDeadCode {
             _ => return Ok(Vec::new()),
         };
 
-        self.query_definitions(lang, tree, source_bytes, query_str, DefinitionKind::Function)
+        self.query_definitions(
+            lang,
+            tree,
+            source_bytes,
+            query_str,
+            DefinitionKind::Function,
+        )
     }
 
     /// Find variable definitions.
@@ -196,7 +202,13 @@ impl FindDeadCode {
             _ => return Ok(Vec::new()),
         };
 
-        self.query_definitions(lang, tree, source_bytes, query_str, DefinitionKind::Variable)
+        self.query_definitions(
+            lang,
+            tree,
+            source_bytes,
+            query_str,
+            DefinitionKind::Variable,
+        )
     }
 
     /// Find import definitions.
@@ -209,9 +221,7 @@ impl FindDeadCode {
     ) -> Result<Vec<Definition>> {
         let query_str = match lang.name() {
             "rust" => "(use_declaration argument: (use_tree) @name) @def",
-            "typescript" | "javascript" => {
-                "(import_specifier name: (identifier) @name) @def"
-            }
+            "typescript" | "javascript" => "(import_specifier name: (identifier) @name) @def",
             "python" => "(import_from_statement name: (dotted_name) @name) @def",
             "go" => "(import_spec path: (interpreted_string_literal) @name) @def",
             "java" => "(import_declaration (scoped_identifier) @name) @def",
@@ -275,7 +285,13 @@ impl FindDeadCode {
             _ => return Ok(Vec::new()),
         };
 
-        self.query_definitions(lang, tree, source_bytes, query_str, DefinitionKind::Constant)
+        self.query_definitions(
+            lang,
+            tree,
+            source_bytes,
+            query_str,
+            DefinitionKind::Constant,
+        )
     }
 
     /// Execute a query and extract definitions.
@@ -359,28 +375,29 @@ impl FindDeadCode {
         while let Some(m) = matches.next() {
             for capture in m.captures {
                 if let Ok(text) = capture.node.utf8_text(source_bytes)
-                    && text == name {
-                        let node = capture.node;
-                        let range = Range {
-                            start: Position {
-                                line: node.start_position().row as u32,
-                                character: node.start_position().column as u32,
-                            },
-                            end: Position {
-                                line: node.end_position().row as u32,
-                                character: node.end_position().column as u32,
-                            },
-                        };
+                    && text == name
+                {
+                    let node = capture.node;
+                    let range = Range {
+                        start: Position {
+                            line: node.start_position().row as u32,
+                            character: node.start_position().column as u32,
+                        },
+                        end: Position {
+                            line: node.end_position().row as u32,
+                            character: node.end_position().column as u32,
+                        },
+                    };
 
-                        // Skip the definition itself
-                        let is_definition = range.start.line == def_range.start.line
-                            && range.start.character >= def_range.start.character
-                            && range.end.character <= def_range.end.character;
+                    // Skip the definition itself
+                    let is_definition = range.start.line == def_range.start.line
+                        && range.start.character >= def_range.start.character
+                        && range.end.character <= def_range.end.character;
 
-                        if !is_definition {
-                            count += 1;
-                        }
+                    if !is_definition {
+                        count += 1;
                     }
+                }
             }
         }
 
@@ -466,9 +483,7 @@ impl FindDeadCode {
         let source_bytes = ctx.source.as_bytes();
 
         let query_str = match lang.name() {
-            "rust" | "go" | "java" | "csharp" | "typescript" | "javascript" => {
-                "(comment) @comment"
-            }
+            "rust" | "go" | "java" | "csharp" | "typescript" | "javascript" => "(comment) @comment",
             "python" | "ruby" => "(comment) @comment",
             _ => return Ok(Vec::new()),
         };
@@ -485,8 +500,21 @@ impl FindDeadCode {
 
         // Patterns that suggest commented-out code
         let code_patterns = [
-            "fn ", "let ", "const ", "var ", "if ", "for ", "while ", "return ",
-            "function ", "class ", "def ", "import ", "from ", "struct ", "enum ",
+            "fn ",
+            "let ",
+            "const ",
+            "var ",
+            "if ",
+            "for ",
+            "while ",
+            "return ",
+            "function ",
+            "class ",
+            "def ",
+            "import ",
+            "from ",
+            "struct ",
+            "enum ",
         ];
 
         while let Some(m) = matches.next() {
@@ -640,10 +668,8 @@ impl RefactoringOperation for FindDeadCode {
             dead_items.extend(self.find_commented_code(ctx, lang)?);
         }
 
-        let mut preview = RefactoringPreview::new(format!(
-            "Found {} dead code item(s)",
-            dead_items.len()
-        ));
+        let mut preview =
+            RefactoringPreview::new(format!("Found {} dead code item(s)", dead_items.len()));
 
         // If auto-delete is enabled, add delete edits
         if self.auto_delete {
@@ -731,12 +757,11 @@ impl RefactoringOperation for FindDeadCode {
         std::fs::write(&ctx.target_file, &new_source)?;
         ctx.source = new_source;
 
-        Ok(RefactoringResult::success(format!(
-            "Deleted {} dead code item(s)",
-            edits.len()
-        ))
-        .with_file(ctx.target_file.clone())
-        .with_edits(edits))
+        Ok(
+            RefactoringResult::success(format!("Deleted {} dead code item(s)", edits.len()))
+                .with_file(ctx.target_file.clone())
+                .with_edits(edits),
+        )
     }
 }
 
@@ -779,8 +804,7 @@ mod tests {
             .with_source("fn main() {}")
             .with_selection(0, 0, 0, 12);
 
-        let op = FindDeadCode::new()
-            .only(Vec::new());
+        let op = FindDeadCode::new().only(Vec::new());
 
         let result = op.validate(&ctx).unwrap();
         assert!(!result.is_valid);

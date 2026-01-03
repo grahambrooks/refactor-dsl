@@ -156,10 +156,7 @@ impl LspRegistry {
             command: "solargraph".to_string(),
             args: vec!["stdio".to_string()],
             extensions: vec!["rb".to_string(), "rake".to_string(), "gemspec".to_string()],
-            root_markers: vec![
-                "Gemfile".to_string(),
-                ".solargraph.yml".to_string(),
-            ],
+            root_markers: vec!["Gemfile".to_string(), ".solargraph.yml".to_string()],
         });
     }
 

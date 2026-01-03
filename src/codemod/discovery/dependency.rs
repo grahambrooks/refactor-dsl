@@ -42,8 +42,7 @@ pub enum PackageManager {
 }
 
 /// Version constraint for dependency matching.
-#[derive(Debug, Clone, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum VersionConstraint {
     /// Any version.
     #[default]
@@ -61,7 +60,6 @@ pub enum VersionConstraint {
     /// Caret version (^).
     Caret(String),
 }
-
 
 impl VersionConstraint {
     /// Parse a version constraint string.
@@ -106,8 +104,7 @@ impl VersionConstraint {
             Self::AtLeast(min) => self.compare_versions(version, min) >= 0,
             Self::AtMost(max) => self.compare_versions(version, max) <= 0,
             Self::Range { min, max } => {
-                self.compare_versions(version, min) >= 0
-                    && self.compare_versions(version, max) <= 0
+                self.compare_versions(version, min) >= 0 && self.compare_versions(version, max) <= 0
             }
             Self::Compatible(base) => {
                 // ~1.2.3 means >=1.2.3 <1.3.0
@@ -186,13 +183,15 @@ impl DependencyFilter {
 
     /// Require a dependency with a specific version.
     pub fn has_version(mut self, name: impl Into<String>, version: impl Into<String>) -> Self {
-        self.required.insert(name.into(), VersionConstraint::parse(&version.into()));
+        self.required
+            .insert(name.into(), VersionConstraint::parse(&version.into()));
         self
     }
 
     /// Require a dependency with at least the specified version.
     pub fn has_at_least(mut self, name: impl Into<String>, version: impl Into<String>) -> Self {
-        self.required.insert(name.into(), VersionConstraint::AtLeast(version.into()));
+        self.required
+            .insert(name.into(), VersionConstraint::AtLeast(version.into()));
         self
     }
 
@@ -208,9 +207,10 @@ impl DependencyFilter {
         let detected = self.detect_package_managers(repo_path);
 
         if let Some(required_pm) = &self.package_manager
-            && !detected.contains(required_pm) {
-                return Ok(false);
-            }
+            && !detected.contains(required_pm)
+        {
+            return Ok(false);
+        }
 
         // Check dependencies for each detected package manager
         for pm in &detected {
@@ -271,9 +271,7 @@ impl DependencyFilter {
         if repo_path.join("go.mod").exists() {
             managers.push(PackageManager::GoMod);
         }
-        if repo_path.join("packages.config").exists()
-            || self.has_csproj(repo_path)
-        {
+        if repo_path.join("packages.config").exists() || self.has_csproj(repo_path) {
             managers.push(PackageManager::NuGet);
         }
         if repo_path.join("composer.json").exists() {
@@ -288,16 +286,21 @@ impl DependencyFilter {
         if let Ok(entries) = std::fs::read_dir(repo_path) {
             for entry in entries.flatten() {
                 if let Some(ext) = entry.path().extension()
-                    && ext == "csproj" {
-                        return true;
-                    }
+                    && ext == "csproj"
+                {
+                    return true;
+                }
             }
         }
         false
     }
 
     /// Read dependencies from a package manager manifest.
-    fn read_dependencies(&self, repo_path: &Path, pm: PackageManager) -> Result<HashMap<String, String>> {
+    fn read_dependencies(
+        &self,
+        repo_path: &Path,
+        pm: PackageManager,
+    ) -> Result<HashMap<String, String>> {
         match pm {
             PackageManager::Cargo => self.read_cargo_deps(repo_path),
             PackageManager::Npm => self.read_npm_deps(repo_path),
@@ -366,9 +369,10 @@ impl DependencyFilter {
             if let Some(eq_pos) = after.find('=') {
                 let value = after[eq_pos + 1..].trim();
                 if value.starts_with('"')
-                    && let Some(end) = value[1..].find('"') {
-                        return value[1..end + 1].to_string();
-                    }
+                    && let Some(end) = value[1..].find('"')
+                {
+                    return value[1..end + 1].to_string();
+                }
             }
         }
         "*".to_string()
@@ -446,25 +450,26 @@ impl DependencyFilter {
         // Also try pyproject.toml
         let pyproject_path = repo_path.join("pyproject.toml");
         if let Ok(content) = std::fs::read_to_string(&pyproject_path)
-            && let Some(deps_start) = content.find("dependencies") {
-                let after = &content[deps_start..];
-                if let Some(bracket_start) = after.find('[') {
-                    let after_bracket = &after[bracket_start + 1..];
-                    if let Some(bracket_end) = after_bracket.find(']') {
-                        let deps_section = &after_bracket[..bracket_end];
-                        for item in deps_section.split(',') {
-                            let item = item.trim().trim_matches('"').trim_matches('\'');
-                            if let Some(op_pos) = item.find(['>', '<', '=', '~']) {
-                                let name = item[..op_pos].to_string();
-                                let version = item[op_pos..].to_string();
-                                deps.insert(name, version);
-                            } else if !item.is_empty() {
-                                deps.insert(item.to_string(), "*".to_string());
-                            }
+            && let Some(deps_start) = content.find("dependencies")
+        {
+            let after = &content[deps_start..];
+            if let Some(bracket_start) = after.find('[') {
+                let after_bracket = &after[bracket_start + 1..];
+                if let Some(bracket_end) = after_bracket.find(']') {
+                    let deps_section = &after_bracket[..bracket_end];
+                    for item in deps_section.split(',') {
+                        let item = item.trim().trim_matches('"').trim_matches('\'');
+                        if let Some(op_pos) = item.find(['>', '<', '=', '~']) {
+                            let name = item[..op_pos].to_string();
+                            let version = item[op_pos..].to_string();
+                            deps.insert(name, version);
+                        } else if !item.is_empty() {
+                            deps.insert(item.to_string(), "*".to_string());
                         }
                     }
                 }
             }
+        }
 
         Ok(deps)
     }
@@ -496,7 +501,14 @@ impl DependencyFilter {
                         } else {
                             format!("{}:{}", current_group, current_artifact)
                         };
-                        deps.insert(name, if current_version.is_empty() { "*".to_string() } else { current_version.clone() });
+                        deps.insert(
+                            name,
+                            if current_version.is_empty() {
+                                "*".to_string()
+                            } else {
+                                current_version.clone()
+                            },
+                        );
                     }
                     in_dependency = false;
                 } else if in_dependency {
@@ -547,14 +559,15 @@ impl DependencyFilter {
                         || line.starts_with("api")
                         || line.starts_with("compile")
                         || line.starts_with("testImplementation"))
-                        && let Some(dep) = self.extract_gradle_dep(line) {
-                            let parts: Vec<&str> = dep.split(':').collect();
-                            if parts.len() >= 2 {
-                                let name = format!("{}:{}", parts[0], parts[1]);
-                                let version = parts.get(2).unwrap_or(&"*").to_string();
-                                deps.insert(name, version);
-                            }
+                        && let Some(dep) = self.extract_gradle_dep(line)
+                    {
+                        let parts: Vec<&str> = dep.split(':').collect();
+                        if parts.len() >= 2 {
+                            let name = format!("{}:{}", parts[0], parts[1]);
+                            let version = parts.get(2).unwrap_or(&"*").to_string();
+                            deps.insert(name, version);
                         }
+                    }
                 }
             }
         }
@@ -584,8 +597,12 @@ impl DependencyFilter {
                     let after_gem = after_gem.trim();
                     let parts: Vec<&str> = after_gem.split(',').collect();
                     if !parts.is_empty() {
-                        let name = parts[0].trim().trim_matches(|c| c == '\'' || c == '"').to_string();
-                        let version = parts.get(1)
+                        let name = parts[0]
+                            .trim()
+                            .trim_matches(|c| c == '\'' || c == '"')
+                            .to_string();
+                        let version = parts
+                            .get(1)
                             .map(|v| v.trim().trim_matches(|c| c == '\'' || c == '"').to_string())
                             .unwrap_or_else(|| "*".to_string());
                         deps.insert(name, version);
@@ -638,18 +655,20 @@ impl DependencyFilter {
         if let Ok(entries) = std::fs::read_dir(repo_path) {
             for entry in entries.flatten() {
                 if entry.path().extension().is_some_and(|e| e == "csproj")
-                    && let Ok(content) = std::fs::read_to_string(entry.path()) {
-                        for line in content.lines() {
-                            // <PackageReference Include="Name" Version="1.0.0" />
-                            if line.contains("PackageReference")
-                                && let (Some(name), Some(version)) = (
-                                    self.extract_xml_attr(line, "Include"),
-                                    self.extract_xml_attr(line, "Version"),
-                                ) {
-                                    deps.insert(name, version);
-                                }
+                    && let Ok(content) = std::fs::read_to_string(entry.path())
+                {
+                    for line in content.lines() {
+                        // <PackageReference Include="Name" Version="1.0.0" />
+                        if line.contains("PackageReference")
+                            && let (Some(name), Some(version)) = (
+                                self.extract_xml_attr(line, "Include"),
+                                self.extract_xml_attr(line, "Version"),
+                            )
+                        {
+                            deps.insert(name, version);
                         }
                     }
+                }
             }
         }
 
@@ -711,7 +730,9 @@ impl DependencyInfo {
 
     /// Check if a dependency exists.
     pub fn has_dependency(&self, name: &str) -> bool {
-        self.dependencies.values().any(|deps| deps.contains_key(name))
+        self.dependencies
+            .values()
+            .any(|deps| deps.contains_key(name))
     }
 
     /// Get the version of a dependency.
@@ -731,13 +752,34 @@ mod tests {
 
     #[test]
     fn test_version_constraint_parse() {
-        assert!(matches!(VersionConstraint::parse("*"), VersionConstraint::Any));
-        assert!(matches!(VersionConstraint::parse(""), VersionConstraint::Any));
-        assert!(matches!(VersionConstraint::parse(">=1.0"), VersionConstraint::AtLeast(_)));
-        assert!(matches!(VersionConstraint::parse("<=2.0"), VersionConstraint::AtMost(_)));
-        assert!(matches!(VersionConstraint::parse("~1.2"), VersionConstraint::Compatible(_)));
-        assert!(matches!(VersionConstraint::parse("^1.2"), VersionConstraint::Caret(_)));
-        assert!(matches!(VersionConstraint::parse("1.0.0"), VersionConstraint::Exact(_)));
+        assert!(matches!(
+            VersionConstraint::parse("*"),
+            VersionConstraint::Any
+        ));
+        assert!(matches!(
+            VersionConstraint::parse(""),
+            VersionConstraint::Any
+        ));
+        assert!(matches!(
+            VersionConstraint::parse(">=1.0"),
+            VersionConstraint::AtLeast(_)
+        ));
+        assert!(matches!(
+            VersionConstraint::parse("<=2.0"),
+            VersionConstraint::AtMost(_)
+        ));
+        assert!(matches!(
+            VersionConstraint::parse("~1.2"),
+            VersionConstraint::Compatible(_)
+        ));
+        assert!(matches!(
+            VersionConstraint::parse("^1.2"),
+            VersionConstraint::Caret(_)
+        ));
+        assert!(matches!(
+            VersionConstraint::parse("1.0.0"),
+            VersionConstraint::Exact(_)
+        ));
     }
 
     #[test]

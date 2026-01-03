@@ -187,8 +187,7 @@ impl LibraryAnalyzer {
     /// The refs can be tags (e.g., "v1.0.0"), branches, or commit hashes.
     pub fn analyze(&self, from_ref: &str, to_ref: &str) -> Result<AnalysisResult> {
         // Read files at both refs
-        let diff_reader = GitDiffReader::new(&self.repo)
-            .filter_extensions(self.extensions.clone());
+        let diff_reader = GitDiffReader::new(&self.repo).filter_extensions(self.extensions.clone());
 
         let changed_files = diff_reader.changed_files(from_ref, to_ref)?;
 
@@ -257,12 +256,10 @@ impl LibraryAnalyzer {
         // Convert transforms to specs
         for transform in &upgrade.transforms {
             let spec = match transform {
-                Transform::FunctionRename { old_name, new_name } => {
-                    TransformSpec::RenameFunction {
-                        old_name: old_name.clone(),
-                        new_name: new_name.clone(),
-                    }
-                }
+                Transform::FunctionRename { old_name, new_name } => TransformSpec::RenameFunction {
+                    old_name: old_name.clone(),
+                    new_name: new_name.clone(),
+                },
                 Transform::TypeRename { old_name, new_name } => TransformSpec::RenameType {
                     old_name: old_name.clone(),
                     new_name: new_name.clone(),
@@ -273,7 +270,10 @@ impl LibraryAnalyzer {
                 },
                 Transform::MethodMove { .. } | Transform::ConstantUpdate { .. } => {
                     let (pattern, replacement) = transform.to_pattern_replacement();
-                    TransformSpec::ReplacePattern { pattern, replacement }
+                    TransformSpec::ReplacePattern {
+                        pattern,
+                        replacement,
+                    }
                 }
             };
             config.add_transform(spec);
@@ -293,9 +293,7 @@ impl LibraryAnalyzer {
 
 /// Sanitize a version string for use in names.
 fn sanitize_version(version: &str) -> String {
-    version
-        .trim_start_matches('v')
-        .replace(['.', '/'], "-")
+    version.trim_start_matches('v').replace(['.', '/'], "-")
 }
 
 #[cfg(test)]

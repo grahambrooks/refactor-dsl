@@ -97,11 +97,9 @@ fn run_github_codemod(org: &str, args: &Args) -> Result<CodemodResult> {
 
     // Push and create PRs unless in dry-run mode
     if !args.dry_run {
-        codemod = codemod
-            .push_branch()
-            .create_pr(
-                "Upgrade to Angular 15",
-                "## Summary\n\n\
+        codemod = codemod.push_branch().create_pr(
+            "Upgrade to Angular 15",
+            "## Summary\n\n\
                  This PR upgrades the project to Angular 15.\n\n\
                  ### Changes\n\
                  - Migrated from `@angular/http` to `@angular/common/http`\n\
@@ -113,7 +111,7 @@ fn run_github_codemod(org: &str, args: &Args) -> Result<CodemodResult> {
                  - [ ] Verify application works as expected\n\n\
                  ---\n\
                  🤖 Generated with [refactor-dsl](https://github.com/example/refactor-dsl)",
-            );
+        );
     } else {
         codemod = codemod.dry_run();
     }
@@ -123,7 +121,10 @@ fn run_github_codemod(org: &str, args: &Args) -> Result<CodemodResult> {
 
 /// Run codemod against a local directory.
 fn run_local_codemod(local_path: &PathBuf, args: &Args) -> Result<CodemodResult> {
-    println!("📁 Processing local repositories in: {}\n", local_path.display());
+    println!(
+        "📁 Processing local repositories in: {}\n",
+        local_path.display()
+    );
 
     let mut codemod = Codemod::from_local(local_path)
         .repositories(|r| r.has_file("angular.json").has_file("package.json"))
@@ -254,10 +255,16 @@ fn print_results(result: &CodemodResult) {
     println!("                        Summary");
     println!("───────────────────────────────────────────────────────────────");
     println!("  Total repositories:     {}", result.summary.total_repos);
-    println!("  Modified:               {}", result.summary.modified_repos);
+    println!(
+        "  Modified:               {}",
+        result.summary.modified_repos
+    );
     println!("  Skipped:                {}", result.summary.skipped_repos);
     println!("  Failed:                 {}", result.summary.failed_repos);
-    println!("  Total files modified:   {}", result.summary.total_files_modified);
+    println!(
+        "  Total files modified:   {}",
+        result.summary.total_files_modified
+    );
     println!("  PRs created:            {}", result.summary.prs_created);
     println!("───────────────────────────────────────────────────────────────\n");
 }

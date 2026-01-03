@@ -182,7 +182,14 @@ impl ProgrammingLanguage {
     pub fn is_markup(&self) -> bool {
         matches!(
             self,
-            Self::HTML | Self::CSS | Self::SCSS | Self::Markdown | Self::YAML | Self::JSON | Self::TOML | Self::XML
+            Self::HTML
+                | Self::CSS
+                | Self::SCSS
+                | Self::Markdown
+                | Self::YAML
+                | Self::JSON
+                | Self::TOML
+                | Self::XML
         )
     }
 
@@ -301,19 +308,24 @@ impl LanguageFilter {
 
         // Check primary language
         if let Some(ref required) = self.required_primary
-            && info.primary != Some(*required) {
-                return Ok(false);
-            }
+            && info.primary != Some(*required)
+        {
+            return Ok(false);
+        }
 
         // Check primary percentage
         if let Some(min_pct) = self.min_primary_percentage
-            && info.primary_percentage < min_pct {
-                return Ok(false);
-            }
+            && info.primary_percentage < min_pct
+        {
+            return Ok(false);
+        }
 
         // Check required any
         if !self.required_any.is_empty() {
-            let has_any = self.required_any.iter().any(|l| info.languages.contains_key(l));
+            let has_any = self
+                .required_any
+                .iter()
+                .any(|l| info.languages.contains_key(l));
             if !has_any {
                 return Ok(false);
             }
@@ -380,7 +392,10 @@ impl LanguageInfo {
     }
 
     /// Walk a directory and count lines by language.
-    fn walk_directory(dir: &Path, languages: &mut HashMap<ProgrammingLanguage, usize>) -> Result<()> {
+    fn walk_directory(
+        dir: &Path,
+        languages: &mut HashMap<ProgrammingLanguage, usize>,
+    ) -> Result<()> {
         let entries = match std::fs::read_dir(dir) {
             Ok(entries) => entries,
             Err(_) => return Ok(()),
@@ -398,14 +413,17 @@ impl LanguageInfo {
             if path.is_dir() {
                 Self::walk_directory(&path, languages)?;
             } else if path.is_file()
-                && let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-                    let lang = ProgrammingLanguage::from_extension(ext);
-                    if lang != ProgrammingLanguage::Other && !lang.is_markup()
-                        && let Ok(content) = std::fs::read_to_string(&path) {
-                            let line_count = content.lines().count();
-                            *languages.entry(lang).or_insert(0) += line_count;
-                        }
+                && let Some(ext) = path.extension().and_then(|e| e.to_str())
+            {
+                let lang = ProgrammingLanguage::from_extension(ext);
+                if lang != ProgrammingLanguage::Other
+                    && !lang.is_markup()
+                    && let Ok(content) = std::fs::read_to_string(&path)
+                {
+                    let line_count = content.lines().count();
+                    *languages.entry(lang).or_insert(0) += line_count;
                 }
+            }
         }
 
         Ok(())
@@ -475,12 +493,30 @@ mod tests {
 
     #[test]
     fn test_language_from_extension() {
-        assert_eq!(ProgrammingLanguage::from_extension("rs"), ProgrammingLanguage::Rust);
-        assert_eq!(ProgrammingLanguage::from_extension("py"), ProgrammingLanguage::Python);
-        assert_eq!(ProgrammingLanguage::from_extension("js"), ProgrammingLanguage::JavaScript);
-        assert_eq!(ProgrammingLanguage::from_extension("ts"), ProgrammingLanguage::TypeScript);
-        assert_eq!(ProgrammingLanguage::from_extension("go"), ProgrammingLanguage::Go);
-        assert_eq!(ProgrammingLanguage::from_extension("unknown"), ProgrammingLanguage::Other);
+        assert_eq!(
+            ProgrammingLanguage::from_extension("rs"),
+            ProgrammingLanguage::Rust
+        );
+        assert_eq!(
+            ProgrammingLanguage::from_extension("py"),
+            ProgrammingLanguage::Python
+        );
+        assert_eq!(
+            ProgrammingLanguage::from_extension("js"),
+            ProgrammingLanguage::JavaScript
+        );
+        assert_eq!(
+            ProgrammingLanguage::from_extension("ts"),
+            ProgrammingLanguage::TypeScript
+        );
+        assert_eq!(
+            ProgrammingLanguage::from_extension("go"),
+            ProgrammingLanguage::Go
+        );
+        assert_eq!(
+            ProgrammingLanguage::from_extension("unknown"),
+            ProgrammingLanguage::Other
+        );
     }
 
     #[test]

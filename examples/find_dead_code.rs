@@ -84,7 +84,9 @@ fn private_unused() {
 
     // Show the API usage
     println!("\n=== API Usage ===\n");
-    println!("{}", r#"
+    println!(
+        "{}",
+        r#"
     // Find dead code in a workspace
     let report = FindDeadCode::new()
         .include(DeadCodeType::UnusedFunctions)
@@ -109,11 +111,14 @@ fn private_unused() {
     println!("Unused functions: {}", summary.unused_functions);
     println!("Unused variables: {}", summary.unused_variables);
     println!("Unused imports: {}", summary.unused_imports);
-"#);
+"#
+    );
 
     // Show integration with SafeDelete
     println!("\n=== Integration with SafeDelete ===\n");
-    println!("{}", r#"
+    println!(
+        "{}",
+        r#"
     // After finding dead code, you can safely delete items
     for item in report.items {
         let delete = SafeDelete::new(&item.name)
@@ -126,7 +131,8 @@ fn private_unused() {
             delete.apply(&ctx)?;
         }
     }
-"#);
+"#
+    );
 
     Ok(())
 }

@@ -397,8 +397,7 @@ impl ScopeAnalyzer {
 
             if let (Some(name), Some(range)) = (class_name, class_range) {
                 let is_private = name.starts_with('_');
-                let mut binding =
-                    Binding::new(name, BindingKind::Class, path.to_path_buf(), range);
+                let mut binding = Binding::new(name, BindingKind::Class, path.to_path_buf(), range);
                 if !is_private {
                     binding = binding.exported();
                 }
@@ -553,8 +552,7 @@ impl ScopeAnalyzer {
             }
 
             if let (Some(name), Some(range)) = (class_name, class_range) {
-                let mut binding =
-                    Binding::new(name, BindingKind::Class, path.to_path_buf(), range);
+                let mut binding = Binding::new(name, BindingKind::Class, path.to_path_buf(), range);
                 if is_public {
                     binding = binding.exported();
                 }
@@ -659,8 +657,7 @@ impl ScopeAnalyzer {
             }
 
             if let (Some(name), Some(range)) = (class_name, class_range) {
-                let mut binding =
-                    Binding::new(name, BindingKind::Class, path.to_path_buf(), range);
+                let mut binding = Binding::new(name, BindingKind::Class, path.to_path_buf(), range);
                 if is_public {
                     binding = binding.exported();
                 }

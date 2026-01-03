@@ -73,7 +73,10 @@ impl CodemodExecutor {
         std::fs::create_dir_all(&self.config.workspace)?;
 
         // Get repositories from source
-        let repos = self.config.source.get_repositories(&self.config.workspace)?;
+        let repos = self
+            .config
+            .source
+            .get_repositories(&self.config.workspace)?;
         summary.total_repos = repos.len();
 
         for repo in repos {
@@ -222,12 +225,7 @@ impl CodemodExecutor {
             // Parse owner/repo from full_name
             let parts: Vec<&str> = repo.full_name.split('/').collect();
             if parts.len() == 2 {
-                let pr_request = CreatePullRequest::new(
-                    &title,
-                    &body,
-                    head,
-                    &repo.default_branch,
-                );
+                let pr_request = CreatePullRequest::new(&title, &body, head, &repo.default_branch);
 
                 match client.create_pull_request(parts[0], parts[1], pr_request) {
                     Ok(pr) => {

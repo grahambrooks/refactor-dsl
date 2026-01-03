@@ -20,7 +20,10 @@ pub enum TransformSpec {
 
     /// Replace using a regex pattern.
     #[serde(rename = "replace_pattern")]
-    ReplacePattern { pattern: String, replacement: String },
+    ReplacePattern {
+        pattern: String,
+        replacement: String,
+    },
 
     /// Rename a function (generates appropriate pattern).
     #[serde(rename = "rename_function")]
@@ -168,11 +171,7 @@ impl UpgradeConfig {
     }
 
     /// Set version information.
-    pub fn with_versions(
-        mut self,
-        from: impl Into<String>,
-        to: impl Into<String>,
-    ) -> Self {
+    pub fn with_versions(mut self, from: impl Into<String>, to: impl Into<String>) -> Self {
         self.from_version = Some(from.into());
         self.to_version = Some(to.into());
         self
@@ -384,8 +383,8 @@ mod tests {
 
     #[test]
     fn test_upgrade_config_with_versions() {
-        let config = UpgradeConfig::new("lib-upgrade", "Upgrade lib")
-            .with_versions("v1.0.0", "v2.0.0");
+        let config =
+            UpgradeConfig::new("lib-upgrade", "Upgrade lib").with_versions("v1.0.0", "v2.0.0");
 
         assert_eq!(config.from_version, Some("v1.0.0".to_string()));
         assert_eq!(config.to_version, Some("v2.0.0".to_string()));

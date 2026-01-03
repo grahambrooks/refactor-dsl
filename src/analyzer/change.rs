@@ -331,21 +331,25 @@ mod tests {
 
     #[test]
     fn test_auto_transformable() {
-        assert!(ChangeKind::FunctionRenamed {
-            old_name: "a".into(),
-            new_name: "b".into(),
-            module_path: None
-        }
-        .is_auto_transformable());
+        assert!(
+            ChangeKind::FunctionRenamed {
+                old_name: "a".into(),
+                new_name: "b".into(),
+                module_path: None
+            }
+            .is_auto_transformable()
+        );
 
-        assert!(!ChangeKind::SignatureChanged {
-            name: "f".into(),
-            old_params: vec![],
-            new_params: vec![],
-            old_return: None,
-            new_return: None
-        }
-        .is_auto_transformable());
+        assert!(
+            !ChangeKind::SignatureChanged {
+                name: "f".into(),
+                old_params: vec![],
+                new_params: vec![],
+                old_return: None,
+                new_return: None
+            }
+            .is_auto_transformable()
+        );
     }
 
     #[test]

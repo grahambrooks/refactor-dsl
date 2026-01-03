@@ -65,7 +65,9 @@ pub use context::{
     RefactoringContext, RefactoringPreview, RefactoringResult, TextEdit, ValidationResult,
 };
 pub use dead_code::{DeadCodeItem, DeadCodeReport, DeadCodeSummary, DeadCodeType, FindDeadCode};
-pub use extract::{ExtractConstant, ExtractFunction, ExtractVariable, ParameterStrategy, Visibility};
+pub use extract::{
+    ExtractConstant, ExtractFunction, ExtractVariable, ParameterStrategy, Visibility,
+};
 pub use inline::{InlineFunction, InlineVariable};
 pub use move_ops::{MoveBetweenModules, MoveToFile, SymbolKind};
 pub use safe_delete::{DeleteKind, SafeDelete, UsageLocation};

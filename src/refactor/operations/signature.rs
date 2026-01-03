@@ -9,10 +9,10 @@ use crate::error::{RefactorError, Result};
 use crate::lang::Language;
 use crate::lsp::{Position, Range};
 
+use super::RefactoringOperation;
 use super::context::{
     RefactoringContext, RefactoringPreview, RefactoringResult, TextEdit, ValidationResult,
 };
-use super::RefactoringOperation;
 
 /// Change the signature of a function or method.
 #[derive(Debug, Clone)]
@@ -100,7 +100,11 @@ impl ChangeSignature {
     }
 
     /// Rename a parameter.
-    pub fn rename_parameter(mut self, old_name: impl Into<String>, new_name: impl Into<String>) -> Self {
+    pub fn rename_parameter(
+        mut self,
+        old_name: impl Into<String>,
+        new_name: impl Into<String>,
+    ) -> Self {
         self.rename_params.insert(old_name.into(), new_name.into());
         self
     }
@@ -226,7 +230,11 @@ impl ChangeSignature {
                         });
                     }
                     "return" => {
-                        return_type = capture.node.utf8_text(source_bytes).ok().map(|s| s.to_string());
+                        return_type = capture
+                            .node
+                            .utf8_text(source_bytes)
+                            .ok()
+                            .map(|s| s.to_string());
                     }
                     "func" => {
                         let node = capture.node;
@@ -245,7 +253,9 @@ impl ChangeSignature {
                 }
             }
 
-            if let (Some(n), Some(pt), Some(pr), Some(fr)) = (name, params_text, params_range, func_range) {
+            if let (Some(n), Some(pt), Some(pr), Some(fr)) =
+                (name, params_text, params_range, func_range)
+            {
                 // Check if cursor is on this function
                 if fr.start.line as usize <= cursor_line && cursor_line <= fr.end.line as usize {
                     let params = self.parse_parameters(pt, lang.name());
@@ -301,9 +311,10 @@ impl ChangeSignature {
         }
 
         if !current.is_empty()
-            && let Some(p) = self.parse_single_parameter(&current, lang_name) {
-                params.push(p);
-            }
+            && let Some(p) = self.parse_single_parameter(&current, lang_name)
+        {
+            params.push(p);
+        }
 
         params
     }
@@ -432,16 +443,16 @@ impl ChangeSignature {
     }
 
     /// Generate new parameters list.
-    fn generate_new_params(
-        &self,
-        current: &[Parameter],
-        lang_name: &str,
-    ) -> String {
+    fn generate_new_params(&self, current: &[Parameter], lang_name: &str) -> String {
         let mut params: Vec<Parameter> = current
             .iter()
             .filter(|p| !self.remove_params.contains(&p.name))
             .map(|p| {
-                let new_name = self.rename_params.get(&p.name).cloned().unwrap_or_else(|| p.name.clone());
+                let new_name = self
+                    .rename_params
+                    .get(&p.name)
+                    .cloned()
+                    .unwrap_or_else(|| p.name.clone());
                 Parameter {
                     name: new_name,
                     param_type: p.param_type.clone(),
@@ -531,10 +542,18 @@ impl ChangeSignature {
         let source_bytes = ctx.source.as_bytes();
 
         let query_str = match lang.name() {
-            "rust" => "(call_expression function: (identifier) @name arguments: (arguments) @args) @call",
-            "typescript" | "javascript" => "(call_expression function: (identifier) @name arguments: (arguments) @args) @call",
-            "python" => "(call function: (identifier) @name arguments: (argument_list) @args) @call",
-            "go" => "(call_expression function: (identifier) @name arguments: (argument_list) @args) @call",
+            "rust" => {
+                "(call_expression function: (identifier) @name arguments: (arguments) @args) @call"
+            }
+            "typescript" | "javascript" => {
+                "(call_expression function: (identifier) @name arguments: (arguments) @args) @call"
+            }
+            "python" => {
+                "(call function: (identifier) @name arguments: (argument_list) @args) @call"
+            }
+            "go" => {
+                "(call_expression function: (identifier) @name arguments: (argument_list) @args) @call"
+            }
             _ => return Ok(Vec::new()),
         };
 
@@ -577,12 +596,13 @@ impl ChangeSignature {
             }
 
             if let (Some(n), Some(at), Some(ar)) = (name, args_text, args_range)
-                && n == func_name {
-                    call_sites.push(CallSite {
-                        args_text: at.to_string(),
-                        args_range: ar,
-                    });
-                }
+                && n == func_name
+            {
+                call_sites.push(CallSite {
+                    args_text: at.to_string(),
+                    args_range: ar,
+                });
+            }
         }
 
         Ok(call_sites)
@@ -666,14 +686,11 @@ impl RefactoringOperation for ChangeSignature {
             .language()
             .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
-        let func = self.find_function(ctx, lang)?.ok_or_else(|| {
-            RefactorError::InvalidConfig("No function found".to_string())
-        })?;
+        let func = self
+            .find_function(ctx, lang)?
+            .ok_or_else(|| RefactorError::InvalidConfig("No function found".to_string()))?;
 
-        let mut preview = RefactoringPreview::new(format!(
-            "Change signature of '{}'",
-            func.name
-        ));
+        let mut preview = RefactoringPreview::new(format!("Change signature of '{}'", func.name));
 
         // Generate new parameter list
         let new_params = self.generate_new_params(&func.parameters, lang.name());
@@ -703,7 +720,10 @@ impl RefactoringOperation for ChangeSignature {
 
         let mut changes = Vec::new();
         if !self.add_params.is_empty() {
-            changes.push(format!("add: {:?}", self.add_params.iter().map(|p| &p.name).collect::<Vec<_>>()));
+            changes.push(format!(
+                "add: {:?}",
+                self.add_params.iter().map(|p| &p.name).collect::<Vec<_>>()
+            ));
         }
         if !self.remove_params.is_empty() {
             changes.push(format!("remove: {:?}", self.remove_params));
@@ -715,7 +735,11 @@ impl RefactoringOperation for ChangeSignature {
         let diff = format!(
             "Change signature of '{}'\nOld: {}\nNew: {}\nChanges: {}",
             func.name,
-            func.parameters.iter().map(|p| p.name.as_str()).collect::<Vec<_>>().join(", "),
+            func.parameters
+                .iter()
+                .map(|p| p.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", "),
             new_params,
             changes.join(", ")
         );
@@ -854,12 +878,13 @@ mod tests {
 
     #[test]
     fn test_generate_new_params() {
-        let op = ChangeSignature::new()
-            .add_parameter(ParameterSpec::new("extra", "bool"));
+        let op = ChangeSignature::new().add_parameter(ParameterSpec::new("extra", "bool"));
 
-        let current = vec![
-            Parameter { name: "name".to_string(), param_type: "&str".to_string(), is_self: false },
-        ];
+        let current = vec![Parameter {
+            name: "name".to_string(),
+            param_type: "&str".to_string(),
+            is_self: false,
+        }];
 
         let new_params = op.generate_new_params(&current, "rust");
         assert!(new_params.contains("name: &str"));
@@ -871,8 +896,16 @@ mod tests {
         let op = ChangeSignature::new().remove_parameter("count");
 
         let current = vec![
-            Parameter { name: "name".to_string(), param_type: "&str".to_string(), is_self: false },
-            Parameter { name: "count".to_string(), param_type: "i32".to_string(), is_self: false },
+            Parameter {
+                name: "name".to_string(),
+                param_type: "&str".to_string(),
+                is_self: false,
+            },
+            Parameter {
+                name: "count".to_string(),
+                param_type: "i32".to_string(),
+                is_self: false,
+            },
         ];
 
         let new_params = op.generate_new_params(&current, "rust");

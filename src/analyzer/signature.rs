@@ -349,13 +349,17 @@ mod tests {
         let p1 = Parameter::new("name").with_type(TypeInfo::simple("String"));
         assert_eq!(p1.display(), "name: String");
 
-        let p2 = Parameter::new("age").with_type(TypeInfo::simple("i32")).with_default();
+        let p2 = Parameter::new("age")
+            .with_type(TypeInfo::simple("i32"))
+            .with_default();
         assert_eq!(p2.display(), "age: i32 = ...");
 
         let p3 = Parameter::new("args").variadic();
         assert_eq!(p3.display(), "...args");
 
-        let p4 = Parameter::new("callback").optional().with_type(TypeInfo::simple("Function"));
+        let p4 = Parameter::new("callback")
+            .optional()
+            .with_type(TypeInfo::simple("Function"));
         assert_eq!(p4.display(), "callback?: Function");
     }
 

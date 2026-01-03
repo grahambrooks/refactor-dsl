@@ -21,13 +21,15 @@ fn main() -> Result<()> {
         .excludes("jquery");
 
     println!("Filter: NPM projects with React, TypeScript >= 4.0, no jQuery");
-    println!(r#"
+    println!(
+        r#"
     let filter = DependencyFilter::new()
         .package_manager(PackageManager::Npm)
         .has("react")
         .has_at_least("typescript", "4.0")
         .excludes("jquery");
-"#);
+"#
+    );
 
     // Example 2: Filter by framework
     println!("2. Filter by Framework\n");
@@ -37,11 +39,13 @@ fn main() -> Result<()> {
         .category(FrameworkCategory::Fullstack);
 
     println!("Filter: Next.js projects (fullstack framework)");
-    println!(r#"
+    println!(
+        r#"
     let filter = FrameworkFilter::new()
         .uses(Framework::NextJs)
         .category(FrameworkCategory::Fullstack);
-"#);
+"#
+    );
 
     // Example 3: Filter by metrics
     println!("3. Filter by Metrics\n");
@@ -52,12 +56,14 @@ fn main() -> Result<()> {
         .commit_age_days(ComparisonOp::LessThan, 30.0);
 
     println!("Filter: Projects with >1000 LOC, <500 files, active in last 30 days");
-    println!(r#"
+    println!(
+        r#"
     let filter = MetricFilter::new()
         .lines_of_code(ComparisonOp::GreaterThan, 1000.0)
         .file_count(ComparisonOp::LessThan, 500.0)
         .commit_age_days(ComparisonOp::LessThan, 30.0);
-"#);
+"#
+    );
 
     // Example 4: Filter by language
     println!("4. Filter by Language\n");
@@ -68,12 +74,14 @@ fn main() -> Result<()> {
         .excludes(ProgrammingLanguage::PHP);
 
     println!("Filter: TypeScript projects (>50% TS), no PHP");
-    println!(r#"
+    println!(
+        r#"
     let filter = LanguageFilter::new()
         .primary(ProgrammingLanguage::TypeScript)
         .min_primary_percentage(50.0)
         .excludes(ProgrammingLanguage::PHP);
-"#);
+"#
+    );
 
     // Example 5: Combined advanced filter
     println!("5. Combined Advanced Filter\n");
@@ -85,15 +93,13 @@ fn main() -> Result<()> {
                 .has_at_least("next", "13.0"),
         )
         .with_framework(FrameworkFilter::new().uses(Framework::NextJs))
-        .with_metrics(
-            MetricFilter::new()
-                .lines_of_code(ComparisonOp::GreaterThan, 5000.0),
-        )
+        .with_metrics(MetricFilter::new().lines_of_code(ComparisonOp::GreaterThan, 5000.0))
         .with_language(LanguageFilter::new().primary(ProgrammingLanguage::TypeScript))
         .match_all();
 
     println!("Combined filter: Next.js 13+ projects, >5000 LOC, TypeScript primary");
-    println!(r#"
+    println!(
+        r#"
     let filter = AdvancedRepoFilter::new()
         .with_dependency(
             DependencyFilter::new()
@@ -113,7 +119,8 @@ fn main() -> Result<()> {
                 .primary(ProgrammingLanguage::TypeScript)
         )
         .match_all();  // All filters must match
-"#);
+"#
+    );
 
     // Example 6: Using filter presets
     println!("6. Filter Presets\n");
@@ -131,7 +138,8 @@ fn main() -> Result<()> {
     // Example 7: Integration with Codemod
     println!("\n7. Integration with Codemod Pipeline\n");
 
-    println!(r#"
+    println!(
+        r#"
     // Full example: Upgrade all active React projects in an org
     let result = Codemod::from_github_org("my-org", "ghp_token")
         .repositories(|r| r
@@ -160,12 +168,14 @@ fn main() -> Result<()> {
         .execute()?;
 
     println!("Upgraded {{}} repositories", result.summary.modified_repos);
-"#);
+"#
+    );
 
     // Example 8: Analyze a repository
     println!("8. Repository Analysis\n");
 
-    println!(r#"
+    println!(
+        r#"
     // Analyze a single repository
     let info = RepositoryInfo::analyze(Path::new("./my-project"))?;
 
@@ -176,7 +186,8 @@ fn main() -> Result<()> {
     println!("Lines of code: {{}}", info.metrics.lines_of_code);
     println!("Frameworks: {{:?}}", info.frameworks.frameworks);
     println!("Package managers: {{:?}}", info.dependencies.package_managers);
-"#);
+"#
+    );
 
     // Show supported package managers
     println!("\n=== Supported Package Managers ===\n");

@@ -59,9 +59,9 @@ impl CommitOps for GitOps {
 
         for path in paths {
             // Get path relative to repo root
-            let workdir = self.repo.workdir().ok_or_else(|| RefactorError::Git(
-                git2::Error::from_str("Repository has no working directory"),
-            ))?;
+            let workdir = self.repo.workdir().ok_or_else(|| {
+                RefactorError::Git(git2::Error::from_str("Repository has no working directory"))
+            })?;
 
             let rel_path = path.strip_prefix(workdir).unwrap_or(path);
 
@@ -144,14 +144,9 @@ impl GitOps {
         // Get parent commit (HEAD)
         let parent = self.repo.head()?.peel_to_commit()?;
 
-        let oid = self.repo.commit(
-            Some("HEAD"),
-            author,
-            committer,
-            message,
-            &tree,
-            &[&parent],
-        )?;
+        let oid = self
+            .repo
+            .commit(Some("HEAD"), author, committer, message, &tree, &[&parent])?;
 
         Ok(oid)
     }

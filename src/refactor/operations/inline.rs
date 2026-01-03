@@ -7,10 +7,10 @@ use crate::error::{RefactorError, Result};
 use crate::lang::Language;
 use crate::lsp::{Position, Range};
 
+use super::RefactoringOperation;
 use super::context::{
     RefactoringContext, RefactoringPreview, RefactoringResult, TextEdit, ValidationResult,
 };
-use super::RefactoringOperation;
 
 /// Inline a variable - replace all usages with its value.
 #[derive(Debug, Clone)]
@@ -175,40 +175,41 @@ impl InlineVariable {
         while let Some(m) = matches.next() {
             for capture in m.captures {
                 if let Ok(text) = capture.node.utf8_text(source_bytes)
-                    && text == var_name {
-                        let range = Range {
-                            start: Position {
-                                line: capture.node.start_position().row as u32,
-                                character: capture.node.start_position().column as u32,
-                            },
-                            end: Position {
-                                line: capture.node.end_position().row as u32,
-                                character: capture.node.end_position().column as u32,
-                            },
-                        };
+                    && text == var_name
+                {
+                    let range = Range {
+                        start: Position {
+                            line: capture.node.start_position().row as u32,
+                            character: capture.node.start_position().column as u32,
+                        },
+                        end: Position {
+                            line: capture.node.end_position().row as u32,
+                            character: capture.node.end_position().column as u32,
+                        },
+                    };
 
-                        // Skip the declaration itself
-                        if range.start.line != declaration_range.start.line
-                            || range.start.character != declaration_range.start.character
+                    // Skip the declaration itself
+                    if range.start.line != declaration_range.start.line
+                        || range.start.character != declaration_range.start.character
+                    {
+                        // Skip if this is within the declaration range (the name in the declaration)
+                        if range.start.line < declaration_range.start.line
+                            || range.start.line > declaration_range.end.line
+                            || (range.start.line == declaration_range.start.line
+                                && range.start.character < declaration_range.start.character)
+                            || (range.start.line == declaration_range.end.line
+                                && range.start.character >= declaration_range.end.character)
                         {
-                            // Skip if this is within the declaration range (the name in the declaration)
-                            if range.start.line < declaration_range.start.line
-                                || range.start.line > declaration_range.end.line
-                                || (range.start.line == declaration_range.start.line
-                                    && range.start.character < declaration_range.start.character)
+                            // Only include usages after the declaration
+                            if range.start.line > declaration_range.end.line
                                 || (range.start.line == declaration_range.end.line
-                                    && range.start.character >= declaration_range.end.character)
+                                    && range.start.character > declaration_range.end.character)
                             {
-                                // Only include usages after the declaration
-                                if range.start.line > declaration_range.end.line
-                                    || (range.start.line == declaration_range.end.line
-                                        && range.start.character > declaration_range.end.character)
-                                {
-                                    usages.push(range);
-                                }
+                                usages.push(range);
                             }
                         }
                     }
+                }
             }
         }
 
@@ -232,9 +233,9 @@ impl RefactoringOperation for InlineVariable {
     fn validate(&self, ctx: &RefactoringContext) -> Result<ValidationResult> {
         ctx.validate()?;
 
-        let lang = ctx.language().ok_or_else(|| {
-            RefactorError::InvalidConfig("No language detected".to_string())
-        })?;
+        let lang = ctx
+            .language()
+            .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
         let var_info = self.find_declaration(ctx, lang)?;
         if var_info.is_none() {
@@ -247,9 +248,9 @@ impl RefactoringOperation for InlineVariable {
     }
 
     fn preview(&self, ctx: &RefactoringContext) -> Result<RefactoringPreview> {
-        let lang = ctx.language().ok_or_else(|| {
-            RefactorError::InvalidConfig("No language detected".to_string())
-        })?;
+        let lang = ctx
+            .language()
+            .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
         let var_info = self.find_declaration(ctx, lang)?.ok_or_else(|| {
             RefactorError::InvalidConfig("No variable declaration found".to_string())
@@ -514,10 +515,18 @@ impl InlineFunction {
         let source_bytes = ctx.source.as_bytes();
 
         let query_str = match lang.name() {
-            "rust" => "(call_expression function: (identifier) @name arguments: (arguments) @args) @call",
-            "typescript" | "javascript" => "(call_expression function: (identifier) @name arguments: (arguments) @args) @call",
-            "python" => "(call function: (identifier) @name arguments: (argument_list) @args) @call",
-            "go" => "(call_expression function: (identifier) @name arguments: (argument_list) @args) @call",
+            "rust" => {
+                "(call_expression function: (identifier) @name arguments: (arguments) @args) @call"
+            }
+            "typescript" | "javascript" => {
+                "(call_expression function: (identifier) @name arguments: (arguments) @args) @call"
+            }
+            "python" => {
+                "(call function: (identifier) @name arguments: (argument_list) @args) @call"
+            }
+            "go" => {
+                "(call_expression function: (identifier) @name arguments: (argument_list) @args) @call"
+            }
             "ruby" => "(call method: (identifier) @name arguments: (argument_list)? @args) @call",
             _ => return Ok(Vec::new()),
         };
@@ -564,12 +573,13 @@ impl InlineFunction {
             }
 
             if let (Some(n), Some(range)) = (name, call_range)
-                && n == func_name {
-                    calls.push(CallInfo {
-                        args: args.unwrap_or("()").to_string(),
-                        range,
-                    });
-                }
+                && n == func_name
+            {
+                calls.push(CallInfo {
+                    args: args.unwrap_or("()").to_string(),
+                    range,
+                });
+            }
         }
 
         Ok(calls)
@@ -645,9 +655,9 @@ impl RefactoringOperation for InlineFunction {
     fn validate(&self, ctx: &RefactoringContext) -> Result<ValidationResult> {
         ctx.validate()?;
 
-        let lang = ctx.language().ok_or_else(|| {
-            RefactorError::InvalidConfig("No language detected".to_string())
-        })?;
+        let lang = ctx
+            .language()
+            .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
         let func_info = self.find_function(ctx, lang)?;
         if func_info.is_none() {
@@ -669,9 +679,9 @@ impl RefactoringOperation for InlineFunction {
     }
 
     fn preview(&self, ctx: &RefactoringContext) -> Result<RefactoringPreview> {
-        let lang = ctx.language().ok_or_else(|| {
-            RefactorError::InvalidConfig("No language detected".to_string())
-        })?;
+        let lang = ctx
+            .language()
+            .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
         let func_info = self.find_function(ctx, lang)?.ok_or_else(|| {
             RefactorError::InvalidConfig("No function definition found".to_string())

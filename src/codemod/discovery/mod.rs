@@ -255,13 +255,23 @@ impl RepositoryInfo {
 
         // Frameworks
         if !self.frameworks.frameworks.is_empty() {
-            let fw_names: Vec<_> = self.frameworks.frameworks.iter().map(|f| format!("{:?}", f)).collect();
+            let fw_names: Vec<_> = self
+                .frameworks
+                .frameworks
+                .iter()
+                .map(|f| format!("{:?}", f))
+                .collect();
             summary.push(format!("Frameworks: {}", fw_names.join(", ")));
         }
 
         // Package managers
         if !self.dependencies.package_managers.is_empty() {
-            let pm_names: Vec<_> = self.dependencies.package_managers.iter().map(|p| format!("{:?}", p)).collect();
+            let pm_names: Vec<_> = self
+                .dependencies
+                .package_managers
+                .iter()
+                .map(|p| format!("{:?}", p))
+                .collect();
             summary.push(format!("Package managers: {}", pm_names.join(", ")));
         }
 
@@ -326,16 +336,14 @@ impl FilterPresets {
 
     /// Filter for active projects (recent commits).
     pub fn active_project(max_days: f64) -> AdvancedRepoFilter {
-        AdvancedRepoFilter::new().with_metrics(
-            MetricFilter::new().commit_age_days(ComparisonOp::LessThan, max_days),
-        )
+        AdvancedRepoFilter::new()
+            .with_metrics(MetricFilter::new().commit_age_days(ComparisonOp::LessThan, max_days))
     }
 
     /// Filter for large projects.
     pub fn large_project(min_lines: f64) -> AdvancedRepoFilter {
-        AdvancedRepoFilter::new().with_metrics(
-            MetricFilter::new().lines_of_code(ComparisonOp::GreaterThan, min_lines),
-        )
+        AdvancedRepoFilter::new()
+            .with_metrics(MetricFilter::new().lines_of_code(ComparisonOp::GreaterThan, min_lines))
     }
 }
 

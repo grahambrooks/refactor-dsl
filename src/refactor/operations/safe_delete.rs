@@ -9,10 +9,10 @@ use crate::error::{RefactorError, Result};
 use crate::lang::Language;
 use crate::lsp::{Position, Range};
 
+use super::RefactoringOperation;
 use super::context::{
     RefactoringContext, RefactoringPreview, RefactoringResult, TextEdit, ValidationResult,
 };
-use super::RefactoringOperation;
 
 /// Safely delete a symbol, checking for usages first.
 #[derive(Debug, Clone)]
@@ -229,36 +229,37 @@ impl SafeDelete {
         while let Some(m) = matches.next() {
             for capture in m.captures {
                 if let Ok(text) = capture.node.utf8_text(source_bytes)
-                    && text == symbol_name {
-                        let node = capture.node;
-                        let range = Range {
-                            start: Position {
-                                line: node.start_position().row as u32,
-                                character: node.start_position().column as u32,
-                            },
-                            end: Position {
-                                line: node.end_position().row as u32,
-                                character: node.end_position().column as u32,
-                            },
-                        };
+                    && text == symbol_name
+                {
+                    let node = capture.node;
+                    let range = Range {
+                        start: Position {
+                            line: node.start_position().row as u32,
+                            character: node.start_position().column as u32,
+                        },
+                        end: Position {
+                            line: node.end_position().row as u32,
+                            character: node.end_position().column as u32,
+                        },
+                    };
 
-                        // Skip the definition itself
-                        if range.start.line != symbol_range.start.line
-                            || range.start.character != symbol_range.start.character
-                        {
-                            // Skip if this is within the definition range
-                            let is_in_def = range.start.line >= symbol_range.start.line
-                                && range.end.line <= symbol_range.end.line;
+                    // Skip the definition itself
+                    if range.start.line != symbol_range.start.line
+                        || range.start.character != symbol_range.start.character
+                    {
+                        // Skip if this is within the definition range
+                        let is_in_def = range.start.line >= symbol_range.start.line
+                            && range.end.line <= symbol_range.end.line;
 
-                            if !is_in_def {
-                                usages.push(UsageLocation {
-                                    file: ctx.target_file.clone(),
-                                    range,
-                                    context: self.get_line_context(&ctx.source, range.start.line),
-                                });
-                            }
+                        if !is_in_def {
+                            usages.push(UsageLocation {
+                                file: ctx.target_file.clone(),
+                                range,
+                                context: self.get_line_context(&ctx.source, range.start.line),
+                            });
                         }
                     }
+                }
             }
         }
 
@@ -321,9 +322,10 @@ impl SafeDelete {
                     }
 
                     if let (Some(t), Some(r)) = (type_name, impl_range)
-                        && t == symbol_name {
-                            related.push(r);
-                        }
+                        && t == symbol_name
+                    {
+                        related.push(r);
+                    }
                 }
             }
         }
@@ -428,12 +430,15 @@ impl RefactoringOperation for SafeDelete {
             .language()
             .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
-        let symbol = self.find_symbol(ctx, lang)?.ok_or_else(|| {
-            RefactorError::InvalidConfig("No deletable symbol found".to_string())
-        })?;
+        let symbol = self
+            .find_symbol(ctx, lang)?
+            .ok_or_else(|| RefactorError::InvalidConfig("No deletable symbol found".to_string()))?;
 
-        let mut preview =
-            RefactoringPreview::new(format!("Delete {} '{}'", format!("{:?}", symbol.kind).to_lowercase(), symbol.name));
+        let mut preview = RefactoringPreview::new(format!(
+            "Delete {} '{}'",
+            format!("{:?}", symbol.kind).to_lowercase(),
+            symbol.name
+        ));
 
         // Delete the symbol
         let delete_range = Range {
@@ -527,12 +532,11 @@ impl RefactoringOperation for SafeDelete {
         std::fs::write(&ctx.target_file, &new_source)?;
         ctx.source = new_source;
 
-        Ok(RefactoringResult::success(format!(
-            "Deleted {} item(s)",
-            edits.len()
-        ))
-        .with_file(ctx.target_file.clone())
-        .with_edits(edits))
+        Ok(
+            RefactoringResult::success(format!("Deleted {} item(s)", edits.len()))
+                .with_file(ctx.target_file.clone())
+                .with_edits(edits),
+        )
     }
 }
 
@@ -581,8 +585,14 @@ mod tests {
 
         let source = "fn test() {}";
         let range = Range {
-            start: Position { line: 0, character: 0 },
-            end: Position { line: 0, character: 12 },
+            start: Position {
+                line: 0,
+                character: 0,
+            },
+            end: Position {
+                line: 0,
+                character: 12,
+            },
         };
         assert_eq!(op.detect_kind(source, &range), DeleteKind::Function);
 
@@ -602,11 +612,19 @@ mod tests {
         let op = SafeDelete::new();
 
         let symbol_range = Range {
-            start: Position { line: 0, character: 3 },
-            end: Position { line: 0, character: 9 },
+            start: Position {
+                line: 0,
+                character: 3,
+            },
+            end: Position {
+                line: 0,
+                character: 9,
+            },
         };
 
-        let usages = op.find_usages_in_file(&ctx, lang, "target", &symbol_range).unwrap();
+        let usages = op
+            .find_usages_in_file(&ctx, lang, "target", &symbol_range)
+            .unwrap();
         assert_eq!(usages.len(), 2);
     }
 }

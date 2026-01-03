@@ -163,13 +163,14 @@ impl RepoOps for GitHubClient {
         let name = name.to_string();
 
         self.block_on(async move {
-            let repo = octocrab
-                .repos(&owner, &name)
-                .get()
-                .await
-                .map_err(|e| RefactorError::GitHub {
-                    message: format!("Failed to get repo {}/{}: {}", owner, name, e),
-                })?;
+            let repo =
+                octocrab
+                    .repos(&owner, &name)
+                    .get()
+                    .await
+                    .map_err(|e| RefactorError::GitHub {
+                        message: format!("Failed to get repo {}/{}: {}", owner, name, e),
+                    })?;
 
             Ok(GitHubRepo::from(repo))
         })

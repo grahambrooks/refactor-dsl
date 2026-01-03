@@ -111,12 +111,33 @@ impl Framework {
         match self {
             Self::React | Self::Vue | Self::Angular | Self::Svelte => FrameworkCategory::Frontend,
             Self::NextJs | Self::NuxtJs => FrameworkCategory::Fullstack,
-            Self::Express | Self::NestJs | Self::Fastify | Self::Django | Self::Flask
-            | Self::FastAPI | Self::Pyramid | Self::Tornado | Self::Rails | Self::Sinatra
-            | Self::Hanami | Self::SpringBoot | Self::Quarkus | Self::Micronaut
-            | Self::JakartaEE | Self::AspNetCore | Self::Blazor | Self::Gin | Self::Echo
-            | Self::Fiber | Self::Chi | Self::ActixWeb | Self::Axum | Self::Rocket
-            | Self::Warp | Self::Laravel | Self::Symfony => FrameworkCategory::Backend,
+            Self::Express
+            | Self::NestJs
+            | Self::Fastify
+            | Self::Django
+            | Self::Flask
+            | Self::FastAPI
+            | Self::Pyramid
+            | Self::Tornado
+            | Self::Rails
+            | Self::Sinatra
+            | Self::Hanami
+            | Self::SpringBoot
+            | Self::Quarkus
+            | Self::Micronaut
+            | Self::JakartaEE
+            | Self::AspNetCore
+            | Self::Blazor
+            | Self::Gin
+            | Self::Echo
+            | Self::Fiber
+            | Self::Chi
+            | Self::ActixWeb
+            | Self::Axum
+            | Self::Rocket
+            | Self::Warp
+            | Self::Laravel
+            | Self::Symfony => FrameworkCategory::Backend,
             Self::Jest | Self::Mocha | Self::Pytest | Self::RSpec | Self::JUnit => {
                 FrameworkCategory::Testing
             }
@@ -126,10 +147,22 @@ impl Framework {
     /// Get the primary language for this framework.
     pub fn language(&self) -> &'static str {
         match self {
-            Self::React | Self::NextJs | Self::Vue | Self::NuxtJs | Self::Angular
-            | Self::Svelte | Self::Express | Self::NestJs | Self::Fastify | Self::Jest
+            Self::React
+            | Self::NextJs
+            | Self::Vue
+            | Self::NuxtJs
+            | Self::Angular
+            | Self::Svelte
+            | Self::Express
+            | Self::NestJs
+            | Self::Fastify
+            | Self::Jest
             | Self::Mocha => "javascript",
-            Self::Django | Self::Flask | Self::FastAPI | Self::Pyramid | Self::Tornado
+            Self::Django
+            | Self::Flask
+            | Self::FastAPI
+            | Self::Pyramid
+            | Self::Tornado
             | Self::Pytest => "python",
             Self::Rails | Self::Sinatra | Self::Hanami | Self::RSpec => "ruby",
             Self::SpringBoot | Self::Quarkus | Self::Micronaut | Self::JakartaEE | Self::JUnit => {
@@ -520,14 +553,22 @@ mod tests {
         assert!(filter.required.contains(&Framework::React));
         assert!(filter.required.contains(&Framework::Express));
         assert!(filter.excluded.contains(&Framework::Vue));
-        assert!(filter.required_categories.contains(&FrameworkCategory::Testing));
+        assert!(
+            filter
+                .required_categories
+                .contains(&FrameworkCategory::Testing)
+        );
     }
 
     #[test]
     fn test_framework_detection_packages() {
         assert!(Framework::React.detection_packages().contains(&"react"));
         assert!(Framework::Django.detection_packages().contains(&"django"));
-        assert!(Framework::ActixWeb.detection_packages().contains(&"actix-web"));
+        assert!(
+            Framework::ActixWeb
+                .detection_packages()
+                .contains(&"actix-web")
+        );
     }
 
     #[test]

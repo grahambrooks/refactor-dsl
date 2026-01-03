@@ -84,9 +84,9 @@ impl<'a> GitDiffReader<'a> {
         let mut opts = DiffOptions::new();
         opts.ignore_whitespace(true);
 
-        let diff = self
-            .repo
-            .diff_tree_to_tree(Some(&from_tree), Some(&to_tree), Some(&mut opts))?;
+        let diff =
+            self.repo
+                .diff_tree_to_tree(Some(&from_tree), Some(&to_tree), Some(&mut opts))?;
 
         let mut changes = Vec::new();
 
@@ -161,9 +161,15 @@ impl<'a> GitDiffReader<'a> {
         })?;
 
         // Handle the object ownership properly
-        let tree_id = obj.peel_to_tree().map_err(|e| {
-            RefactorError::InvalidConfig(format!("Could not get tree for '{}': {}", ref_name, e))
-        })?.id();
+        let tree_id = obj
+            .peel_to_tree()
+            .map_err(|e| {
+                RefactorError::InvalidConfig(format!(
+                    "Could not get tree for '{}': {}",
+                    ref_name, e
+                ))
+            })?
+            .id();
 
         self.repo.find_tree(tree_id).map_err(|e| {
             RefactorError::InvalidConfig(format!("Could not find tree for '{}': {}", ref_name, e))
@@ -273,7 +279,10 @@ impl ApiExtractor {
     }
 
     /// Extract from multiple files.
-    pub fn extract_all(&self, files: &[FileContent]) -> Result<HashMap<PathBuf, Vec<ApiSignature>>> {
+    pub fn extract_all(
+        &self,
+        files: &[FileContent],
+    ) -> Result<HashMap<PathBuf, Vec<ApiSignature>>> {
         let mut result = HashMap::new();
 
         for file in files {
@@ -293,7 +302,12 @@ impl ApiExtractor {
         Ok(result)
     }
 
-    fn extract_rust(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+    fn extract_rust(
+        &self,
+        path: &Path,
+        source: &str,
+        lang: &dyn Language,
+    ) -> Result<Vec<ApiSignature>> {
         let tree = lang.parse(source)?;
         let source_bytes = source.as_bytes();
         let mut signatures = Vec::new();
@@ -511,7 +525,10 @@ impl ApiExtractor {
                                 param_name = sub.utf8_text(source).ok().map(String::from);
                             }
                             _ if sub.kind().contains("type") || sub.kind() == "_type" => {
-                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                                param_type = sub
+                                    .utf8_text(source)
+                                    .ok()
+                                    .map(|t| TypeInfo::simple(t.trim()));
                             }
                             _ => {}
                         }
@@ -531,7 +548,12 @@ impl ApiExtractor {
         params
     }
 
-    fn extract_typescript(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+    fn extract_typescript(
+        &self,
+        path: &Path,
+        source: &str,
+        lang: &dyn Language,
+    ) -> Result<Vec<ApiSignature>> {
         let tree = lang.parse(source)?;
         let source_bytes = source.as_bytes();
         let mut signatures = Vec::new();
@@ -823,7 +845,12 @@ impl ApiExtractor {
         params
     }
 
-    fn extract_python(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+    fn extract_python(
+        &self,
+        path: &Path,
+        source: &str,
+        lang: &dyn Language,
+    ) -> Result<Vec<ApiSignature>> {
         let tree = lang.parse(source)?;
         let source_bytes = source.as_bytes();
         let mut signatures = Vec::new();
@@ -971,7 +998,10 @@ impl ApiExtractor {
                             params.push(Parameter::new(name));
                         }
                     }
-                } else if kind == "typed_parameter" || kind == "default_parameter" || kind == "typed_default_parameter" {
+                } else if kind == "typed_parameter"
+                    || kind == "default_parameter"
+                    || kind == "typed_default_parameter"
+                {
                     let mut param_name = None;
                     let mut param_type = None;
                     let has_default = kind.contains("default");
@@ -983,7 +1013,10 @@ impl ApiExtractor {
                                     param_name = sub.utf8_text(source).ok().map(String::from);
                                 }
                                 "type" => {
-                                    param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                                    param_type = sub
+                                        .utf8_text(source)
+                                        .ok()
+                                        .map(|t| TypeInfo::simple(t.trim()));
                                 }
                                 _ => {}
                             }
@@ -991,7 +1024,8 @@ impl ApiExtractor {
                     }
 
                     if let Some(name) = param_name
-                        && name != "self" && name != "cls"
+                        && name != "self"
+                        && name != "cls"
                     {
                         let mut param = Parameter::new(name);
                         if let Some(ty) = param_type {
@@ -1017,7 +1051,12 @@ impl ApiExtractor {
         params
     }
 
-    fn extract_go(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+    fn extract_go(
+        &self,
+        path: &Path,
+        source: &str,
+        lang: &dyn Language,
+    ) -> Result<Vec<ApiSignature>> {
         let tree = lang.parse(source)?;
         let source_bytes = source.as_bytes();
         let mut signatures = Vec::new();
@@ -1302,7 +1341,10 @@ impl ApiExtractor {
                                 }
                             }
                             _ if sub.kind().contains("type") || sub.kind().ends_with("_type") => {
-                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                                param_type = sub
+                                    .utf8_text(source)
+                                    .ok()
+                                    .map(|t| TypeInfo::simple(t.trim()));
                             }
                             _ => {}
                         }
@@ -1323,7 +1365,12 @@ impl ApiExtractor {
         params
     }
 
-    fn extract_java(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+    fn extract_java(
+        &self,
+        path: &Path,
+        source: &str,
+        lang: &dyn Language,
+    ) -> Result<Vec<ApiSignature>> {
         let tree = lang.parse(source)?;
         let source_bytes = source.as_bytes();
         let mut signatures = Vec::new();
@@ -1539,7 +1586,10 @@ impl ApiExtractor {
                                 param_name = sub.utf8_text(source).ok().map(String::from);
                             }
                             _ if sub.kind().contains("type") => {
-                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                                param_type = sub
+                                    .utf8_text(source)
+                                    .ok()
+                                    .map(|t| TypeInfo::simple(t.trim()));
                             }
                             _ => {}
                         }
@@ -1559,7 +1609,12 @@ impl ApiExtractor {
         params
     }
 
-    fn extract_csharp(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+    fn extract_csharp(
+        &self,
+        path: &Path,
+        source: &str,
+        lang: &dyn Language,
+    ) -> Result<Vec<ApiSignature>> {
         let tree = lang.parse(source)?;
         let source_bytes = source.as_bytes();
         let mut signatures = Vec::new();
@@ -1781,7 +1836,10 @@ impl ApiExtractor {
                                 param_name = sub.utf8_text(source).ok().map(String::from);
                             }
                             _ if sub.kind().contains("type") || sub.kind() == "predefined_type" => {
-                                param_type = sub.utf8_text(source).ok().map(|t| TypeInfo::simple(t.trim()));
+                                param_type = sub
+                                    .utf8_text(source)
+                                    .ok()
+                                    .map(|t| TypeInfo::simple(t.trim()));
                             }
                             _ => {}
                         }
@@ -1801,7 +1859,12 @@ impl ApiExtractor {
         params
     }
 
-    fn extract_ruby(&self, path: &Path, source: &str, lang: &dyn Language) -> Result<Vec<ApiSignature>> {
+    fn extract_ruby(
+        &self,
+        path: &Path,
+        source: &str,
+        lang: &dyn Language,
+    ) -> Result<Vec<ApiSignature>> {
         let tree = lang.parse(source)?;
         let source_bytes = source.as_bytes();
         let mut signatures = Vec::new();
@@ -2213,7 +2276,9 @@ interface Repository {
 }
 "#;
 
-        let sigs = extractor.extract(Path::new("UserService.java"), source).unwrap();
+        let sigs = extractor
+            .extract(Path::new("UserService.java"), source)
+            .unwrap();
 
         let user_service = sigs.iter().find(|s| s.name == "UserService").unwrap();
         assert!(user_service.is_exported);
@@ -2285,7 +2350,9 @@ module MyModule
 end
 "#;
 
-        let sigs = extractor.extract(Path::new("user_service.rb"), source).unwrap();
+        let sigs = extractor
+            .extract(Path::new("user_service.rb"), source)
+            .unwrap();
 
         let my_module = sigs.iter().find(|s| s.name == "MyModule").unwrap();
         assert!(my_module.is_exported);

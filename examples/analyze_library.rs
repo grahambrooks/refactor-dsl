@@ -21,11 +21,17 @@ fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
     if args.len() < 4 {
-        eprintln!("Usage: {} <library-path> <from-ref> <to-ref> [--apply <projects-dir>]", args[0]);
+        eprintln!(
+            "Usage: {} <library-path> <from-ref> <to-ref> [--apply <projects-dir>]",
+            args[0]
+        );
         eprintln!();
         eprintln!("Examples:");
         eprintln!("  {} ./my-library v1.0.0 v2.0.0", args[0]);
-        eprintln!("  {} ./my-library main feature/v2 --apply ./projects", args[0]);
+        eprintln!(
+            "  {} ./my-library main feature/v2 --apply ./projects",
+            args[0]
+        );
         std::process::exit(1);
     }
 
@@ -50,7 +56,10 @@ fn main() -> Result<()> {
     println!("Found {} file changes", analysis.changed_files.len());
     println!("Detected {} API changes:", analysis.changes.len());
     println!("  - Breaking: {}", analysis.breaking_changes().len());
-    println!("  - Auto-transformable: {}", analysis.auto_transformable().len());
+    println!(
+        "  - Auto-transformable: {}",
+        analysis.auto_transformable().len()
+    );
     println!("  - Requires review: {}", analysis.manual_review().len());
     println!();
 
@@ -85,12 +94,18 @@ fn main() -> Result<()> {
         println!("Dry-run results:");
         println!("  - Repos processed: {}", result.summary.total_repos);
         println!("  - Repos modified: {}", result.summary.modified_repos);
-        println!("  - Files modified: {}", result.summary.total_files_modified);
+        println!(
+            "  - Files modified: {}",
+            result.summary.total_files_modified
+        );
 
         for repo_result in &result.repo_results {
             if repo_result.files_modified > 0 {
                 println!();
-                println!("  {} ({} files):", repo_result.name, repo_result.files_modified);
+                println!(
+                    "  {} ({} files):",
+                    repo_result.name, repo_result.files_modified
+                );
             }
         }
     }
@@ -120,7 +135,10 @@ fn apply_from_config(config_path: &str, projects_dir: &str) -> Result<()> {
         .dry_run()
         .execute()?;
 
-    println!("Would modify {} repositories", result.summary.modified_repos);
+    println!(
+        "Would modify {} repositories",
+        result.summary.modified_repos
+    );
 
     Ok(())
 }

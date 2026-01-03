@@ -276,7 +276,12 @@ impl BindingTracker {
     }
 
     /// Create a new scope.
-    pub fn create_scope(&mut self, kind: ScopeKind, range: Range, parent: Option<ScopeId>) -> ScopeId {
+    pub fn create_scope(
+        &mut self,
+        kind: ScopeKind,
+        range: Range,
+        parent: Option<ScopeId>,
+    ) -> ScopeId {
         let id = ScopeId::new(self.next_scope_id);
         self.next_scope_id += 1;
 
@@ -429,7 +434,11 @@ mod tests {
         let mut tracker = BindingTracker::new();
 
         // Create a function scope
-        let fn_scope = tracker.create_scope(ScopeKind::Function, make_range(1, 10), Some(ScopeId::root()));
+        let fn_scope = tracker.create_scope(
+            ScopeKind::Function,
+            make_range(1, 10),
+            Some(ScopeId::root()),
+        );
 
         // Add a global binding
         let global_binding = Binding::new(

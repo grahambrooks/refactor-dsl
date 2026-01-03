@@ -107,24 +107,26 @@ pub mod prelude {
         GeneratedUpgrade, LibraryAnalyzer, TransformSpec, UpgradeConfig, UpgradeGenerator,
     };
     pub use crate::codemod::{
-        angular_v4v5_upgrade, rxjs_5_to_6_upgrade, AdvancedRepoFilter, AngularV4V5Upgrade,
-        Codemod, CodemodResult, ComparisonOp, DependencyFilter, DependencyInfo, FilterPresets,
-        Framework, FrameworkCategory, FrameworkFilter, FrameworkInfo, LanguageFilter,
-        LanguageInfo, MatchMode, MetricCondition, MetricFilter, PackageManager,
-        ProgrammingLanguage, RepoFilter, RepositoryInfo, RepositoryMetrics, RxJS5To6Upgrade,
-        Upgrade, VersionConstraint,
+        AdvancedRepoFilter, AngularV4V5Upgrade, Codemod, CodemodResult, ComparisonOp,
+        DependencyFilter, DependencyInfo, FilterPresets, Framework, FrameworkCategory,
+        FrameworkFilter, FrameworkInfo, LanguageFilter, LanguageInfo, MatchMode, MetricCondition,
+        MetricFilter, PackageManager, ProgrammingLanguage, RepoFilter, RepositoryInfo,
+        RepositoryMetrics, RxJS5To6Upgrade, Upgrade, VersionConstraint, angular_v4v5_upgrade,
+        rxjs_5_to_6_upgrade,
     };
     pub use crate::error::{RefactorError, Result};
     pub use crate::git::{BranchOps, CommitOps, GitAuth, GitOps, PushOps};
     pub use crate::github::{GitHubClient, GitHubRepo, RepoOps};
-    pub use crate::lang::{CSharp, Go, Java, Language, LanguageRegistry, Python, Ruby, Rust, TypeScript};
+    pub use crate::lang::{
+        CSharp, Go, Java, Language, LanguageRegistry, Python, Ruby, Rust, TypeScript,
+    };
     pub use crate::lsp::{LspClient, LspInstaller, LspRegistry, LspRename, LspServerConfig};
     pub use crate::matcher::{AstMatcher, FileMatcher, GitMatcher, Matcher};
     pub use crate::refactor::operations::{
-        ChangeSignature, DeadCodeItem, DeadCodeReport, DeadCodeSummary, DeadCodeType,
-        DeleteKind, ExtractConstant, ExtractFunction, ExtractVariable, FindDeadCode,
-        InlineFunction, InlineVariable, MoveBetweenModules, MoveToFile, ParameterSpec,
-        ParameterStrategy, RefactoringContext, RefactoringOperation, RefactoringPreview,
+        ChangeSignature, DeadCodeItem, DeadCodeReport, DeadCodeSummary, DeadCodeType, DeleteKind,
+        ExtractConstant, ExtractFunction, ExtractVariable, FindDeadCode, InlineFunction,
+        InlineVariable, MoveBetweenModules, MoveToFile, ParameterSpec, ParameterStrategy,
+        RefactoringContext, RefactoringOperation, RefactoringPreview,
         RefactoringResult as OpRefactoringResult, RefactoringRunner, SafeDelete, SymbolKind,
         TextEdit, UsageLocation, ValidationResult, Visibility,
     };

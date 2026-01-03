@@ -25,7 +25,10 @@ impl From<OctocrabPR> for PullRequest {
             id: pr.id.0,
             number: pr.number,
             html_url: pr.html_url.map(|u| u.to_string()).unwrap_or_default(),
-            state: pr.state.map(|s| format!("{:?}", s).to_lowercase()).unwrap_or_default(),
+            state: pr
+                .state
+                .map(|s| format!("{:?}", s).to_lowercase())
+                .unwrap_or_default(),
             title: pr.title.unwrap_or_default(),
             body: pr.body,
             head: PullRequestRef {

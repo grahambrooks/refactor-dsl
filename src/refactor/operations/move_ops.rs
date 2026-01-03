@@ -9,10 +9,10 @@ use crate::error::{RefactorError, Result};
 use crate::lang::Language;
 use crate::lsp::{Position, Range};
 
+use super::RefactoringOperation;
 use super::context::{
     RefactoringContext, RefactoringPreview, RefactoringResult, TextEdit, ValidationResult,
 };
-use super::RefactoringOperation;
 
 /// Move a symbol to a different file.
 #[derive(Debug, Clone)]
@@ -237,12 +237,7 @@ impl MoveToFile {
     }
 
     /// Generate re-export statement.
-    fn generate_reexport(
-        &self,
-        symbol_name: &str,
-        target_file: &Path,
-        lang_name: &str,
-    ) -> String {
+    fn generate_reexport(&self, symbol_name: &str, target_file: &Path, lang_name: &str) -> String {
         let module_path = self.file_to_module_path(target_file, lang_name);
 
         match lang_name {
@@ -340,9 +335,9 @@ impl RefactoringOperation for MoveToFile {
             .language()
             .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
-        let symbol = self.find_symbol(ctx, lang)?.ok_or_else(|| {
-            RefactorError::InvalidConfig("No movable symbol found".to_string())
-        })?;
+        let symbol = self
+            .find_symbol(ctx, lang)?
+            .ok_or_else(|| RefactorError::InvalidConfig("No movable symbol found".to_string()))?;
 
         let mut preview = RefactoringPreview::new(format!(
             "Move '{}' to '{}'",
@@ -412,9 +407,9 @@ impl RefactoringOperation for MoveToFile {
             .language()
             .ok_or_else(|| RefactorError::InvalidConfig("No language detected".to_string()))?;
 
-        let symbol = self.find_symbol(ctx, lang)?.ok_or_else(|| {
-            RefactorError::InvalidConfig("No movable symbol found".to_string())
-        })?;
+        let symbol = self
+            .find_symbol(ctx, lang)?
+            .ok_or_else(|| RefactorError::InvalidConfig("No movable symbol found".to_string()))?;
 
         // Read target file content (or create empty)
         let target_content = std::fs::read_to_string(&self.target_file).unwrap_or_default();
@@ -528,9 +523,11 @@ impl MoveBetweenModules {
                 }
 
                 if let Some(n) = name
-                    && mod_start <= cursor_line && cursor_line <= mod_end {
-                        containing_mod = Some(n.to_string());
-                    }
+                    && mod_start <= cursor_line
+                    && cursor_line <= mod_end
+                {
+                    containing_mod = Some(n.to_string());
+                }
             }
 
             return Ok(containing_mod);
@@ -554,10 +551,10 @@ impl RefactoringOperation for MoveBetweenModules {
 
         // Only supported for Rust currently
         if lang.name() != "rust" {
-            return Ok(
-                ValidationResult::invalid("Move between modules is currently only supported for Rust")
-                    .with_warning("Use MoveToFile for other languages"),
-            );
+            return Ok(ValidationResult::invalid(
+                "Move between modules is currently only supported for Rust",
+            )
+            .with_warning("Use MoveToFile for other languages"));
         }
 
         if self.target_module.is_empty() {
@@ -575,10 +572,8 @@ impl RefactoringOperation for MoveBetweenModules {
         let current_module = self.find_current_module(ctx, lang)?;
         let selected = ctx.selected_text();
 
-        let mut preview = RefactoringPreview::new(format!(
-            "Move selection to module '{}'",
-            self.target_module
-        ));
+        let mut preview =
+            RefactoringPreview::new(format!("Move selection to module '{}'", self.target_module));
 
         let diff = format!(
             "Move from {} to {}\nSelected: {}",
@@ -663,11 +658,26 @@ mod tests {
     fn test_symbol_kind_detection() {
         let op = MoveToFile::new("target.rs");
 
-        assert_eq!(op.detect_symbol_kind("fn foo() {}", "rust"), SymbolKind::Function);
-        assert_eq!(op.detect_symbol_kind("struct Bar {}", "rust"), SymbolKind::Struct);
-        assert_eq!(op.detect_symbol_kind("enum Baz {}", "rust"), SymbolKind::Enum);
-        assert_eq!(op.detect_symbol_kind("class Foo {}", "typescript"), SymbolKind::Class);
-        assert_eq!(op.detect_symbol_kind("def foo():", "python"), SymbolKind::Function);
+        assert_eq!(
+            op.detect_symbol_kind("fn foo() {}", "rust"),
+            SymbolKind::Function
+        );
+        assert_eq!(
+            op.detect_symbol_kind("struct Bar {}", "rust"),
+            SymbolKind::Struct
+        );
+        assert_eq!(
+            op.detect_symbol_kind("enum Baz {}", "rust"),
+            SymbolKind::Enum
+        );
+        assert_eq!(
+            op.detect_symbol_kind("class Foo {}", "typescript"),
+            SymbolKind::Class
+        );
+        assert_eq!(
+            op.detect_symbol_kind("def foo():", "python"),
+            SymbolKind::Function
+        );
     }
 
     #[test]

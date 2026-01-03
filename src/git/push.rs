@@ -27,11 +27,12 @@ pub trait PushOps {
 
 impl PushOps for GitOps {
     fn push(&self, remote_name: &str, branch: &str) -> Result<()> {
-        let mut remote = self.repo.find_remote(remote_name).map_err(|_| {
-            RefactorError::PushError {
-                message: format!("Remote '{}' not found", remote_name),
-            }
-        })?;
+        let mut remote =
+            self.repo
+                .find_remote(remote_name)
+                .map_err(|_| RefactorError::PushError {
+                    message: format!("Remote '{}' not found", remote_name),
+                })?;
 
         let refspec = format!("refs/heads/{}:refs/heads/{}", branch, branch);
 
@@ -63,11 +64,12 @@ impl PushOps for GitOps {
     }
 
     fn fetch(&self, remote_name: &str, branches: &[&str]) -> Result<()> {
-        let mut remote = self.repo.find_remote(remote_name).map_err(|_| {
-            RefactorError::PushError {
-                message: format!("Remote '{}' not found", remote_name),
-            }
-        })?;
+        let mut remote =
+            self.repo
+                .find_remote(remote_name)
+                .map_err(|_| RefactorError::PushError {
+                    message: format!("Remote '{}' not found", remote_name),
+                })?;
 
         let mut callbacks = RemoteCallbacks::new();
         self.setup_auth_callbacks(&mut callbacks);
@@ -82,10 +84,9 @@ impl PushOps for GitOps {
 
     fn remote_url(&self, remote_name: &str) -> Result<String> {
         let remote = self.repo.find_remote(remote_name)?;
-        remote
-            .url()
-            .map(String::from)
-            .ok_or_else(|| RefactorError::InvalidConfig(format!("Remote '{}' has no URL", remote_name)))
+        remote.url().map(String::from).ok_or_else(|| {
+            RefactorError::InvalidConfig(format!("Remote '{}' has no URL", remote_name))
+        })
     }
 
     fn remote_exists(&self, remote_name: &str) -> bool {

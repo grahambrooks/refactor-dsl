@@ -223,47 +223,55 @@ impl MetricFilter {
         let metrics = RepositoryMetrics::analyze(repo_path)?;
 
         if let Some(ref cond) = self.lines_of_code
-            && !cond.check(metrics.lines_of_code as f64) {
-                return Ok(false);
-            }
+            && !cond.check(metrics.lines_of_code as f64)
+        {
+            return Ok(false);
+        }
 
         if let Some(ref cond) = self.file_count
-            && !cond.check(metrics.file_count as f64) {
-                return Ok(false);
-            }
+            && !cond.check(metrics.file_count as f64)
+        {
+            return Ok(false);
+        }
 
         if let Some(ref cond) = self.directory_count
-            && !cond.check(metrics.directory_count as f64) {
-                return Ok(false);
-            }
+            && !cond.check(metrics.directory_count as f64)
+        {
+            return Ok(false);
+        }
 
         if let Some(ref cond) = self.commit_age_days
             && let Some(age) = metrics.last_commit_age_days
-                && !cond.check(age) {
-                    return Ok(false);
-                }
+            && !cond.check(age)
+        {
+            return Ok(false);
+        }
 
         if let Some(ref cond) = self.avg_file_size
-            && !cond.check(metrics.avg_file_size) {
-                return Ok(false);
-            }
+            && !cond.check(metrics.avg_file_size)
+        {
+            return Ok(false);
+        }
 
         if let Some(ref cond) = self.max_file_size
-            && !cond.check(metrics.max_file_size as f64) {
-                return Ok(false);
-            }
+            && !cond.check(metrics.max_file_size as f64)
+        {
+            return Ok(false);
+        }
 
         if let Some(ref cond) = self.contributor_count
             && let Some(count) = metrics.contributor_count
-                && !cond.check(count as f64) {
-                    return Ok(false);
-                }
+            && !cond.check(count as f64)
+        {
+            return Ok(false);
+        }
 
         if let Some(ref cond) = self.commit_count
             && let Some(count) = metrics.commit_count
-                && !cond.check(count as f64) {
-                    return Ok(false);
-                }
+            && !cond.check(count as f64)
+        {
+            return Ok(false);
+        }
 
         Ok(true)
     }
@@ -300,7 +308,8 @@ impl RepositoryMetrics {
     /// Analyze a repository and collect metrics.
     pub fn analyze(repo_path: &Path) -> Result<Self> {
         let mut metrics = Self::default();
-        let mut lines_by_ext: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
+        let mut lines_by_ext: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::new();
 
         // Walk the repository
         Self::walk_directory(repo_path, &mut metrics, &mut lines_by_ext)?;
@@ -353,11 +362,12 @@ impl RepositoryMetrics {
                 // Count lines for source files
                 if let Some(ext) = path.extension().and_then(|e| e.to_str())
                     && Self::is_source_extension(ext)
-                        && let Ok(content) = std::fs::read_to_string(&path) {
-                            let line_count = content.lines().count();
-                            metrics.lines_of_code += line_count;
-                            *lines_by_ext.entry(ext.to_string()).or_insert(0) += line_count;
-                        }
+                    && let Ok(content) = std::fs::read_to_string(&path)
+                {
+                    let line_count = content.lines().count();
+                    metrics.lines_of_code += line_count;
+                    *lines_by_ext.entry(ext.to_string()).or_insert(0) += line_count;
+                }
             }
         }
 
@@ -388,11 +398,46 @@ impl RepositoryMetrics {
     fn is_source_extension(ext: &str) -> bool {
         matches!(
             ext.to_lowercase().as_str(),
-            "rs" | "py" | "js" | "ts" | "jsx" | "tsx" | "go" | "java" | "kt" | "scala"
-                | "rb" | "php" | "c" | "cpp" | "cc" | "cxx" | "h" | "hpp"
-                | "cs" | "fs" | "swift" | "m" | "mm" | "vue" | "svelte"
-                | "lua" | "pl" | "pm" | "r" | "jl" | "hs" | "elm" | "ex" | "exs"
-                | "erl" | "clj" | "cljs" | "lisp" | "scm" | "ml" | "mli"
+            "rs" | "py"
+                | "js"
+                | "ts"
+                | "jsx"
+                | "tsx"
+                | "go"
+                | "java"
+                | "kt"
+                | "scala"
+                | "rb"
+                | "php"
+                | "c"
+                | "cpp"
+                | "cc"
+                | "cxx"
+                | "h"
+                | "hpp"
+                | "cs"
+                | "fs"
+                | "swift"
+                | "m"
+                | "mm"
+                | "vue"
+                | "svelte"
+                | "lua"
+                | "pl"
+                | "pm"
+                | "r"
+                | "jl"
+                | "hs"
+                | "elm"
+                | "ex"
+                | "exs"
+                | "erl"
+                | "clj"
+                | "cljs"
+                | "lisp"
+                | "scm"
+                | "ml"
+                | "mli"
         )
     }
 
@@ -410,10 +455,11 @@ impl RepositoryMetrics {
             .current_dir(repo_path)
             .output()
             && output.status.success()
-                && let Ok(count_str) = String::from_utf8(output.stdout)
-                    && let Ok(count) = count_str.trim().parse::<usize>() {
-                        self.commit_count = Some(count);
-                    }
+            && let Ok(count_str) = String::from_utf8(output.stdout)
+            && let Ok(count) = count_str.trim().parse::<usize>()
+        {
+            self.commit_count = Some(count);
+        }
 
         // Try to get contributor count
         if let Ok(output) = std::process::Command::new("git")
@@ -421,9 +467,10 @@ impl RepositoryMetrics {
             .current_dir(repo_path)
             .output()
             && output.status.success()
-                && let Ok(log) = String::from_utf8(output.stdout) {
-                    self.contributor_count = Some(log.lines().count());
-                }
+            && let Ok(log) = String::from_utf8(output.stdout)
+        {
+            self.contributor_count = Some(log.lines().count());
+        }
 
         // Try to get last commit date
         if let Ok(output) = std::process::Command::new("git")
@@ -431,13 +478,14 @@ impl RepositoryMetrics {
             .current_dir(repo_path)
             .output()
             && output.status.success()
-                && let Ok(timestamp_str) = String::from_utf8(output.stdout)
-                    && let Ok(timestamp) = timestamp_str.trim().parse::<u64>() {
-                        let commit_time = std::time::UNIX_EPOCH + Duration::from_secs(timestamp);
-                        if let Ok(age) = SystemTime::now().duration_since(commit_time) {
-                            self.last_commit_age_days = Some(age.as_secs_f64() / 86400.0);
-                        }
-                    }
+            && let Ok(timestamp_str) = String::from_utf8(output.stdout)
+            && let Ok(timestamp) = timestamp_str.trim().parse::<u64>()
+        {
+            let commit_time = std::time::UNIX_EPOCH + Duration::from_secs(timestamp);
+            if let Ok(age) = SystemTime::now().duration_since(commit_time) {
+                self.last_commit_age_days = Some(age.as_secs_f64() / 86400.0);
+            }
+        }
 
         // Try to get first commit date (repo age)
         if let Ok(output) = std::process::Command::new("git")
@@ -445,13 +493,14 @@ impl RepositoryMetrics {
             .current_dir(repo_path)
             .output()
             && output.status.success()
-                && let Ok(timestamp_str) = String::from_utf8(output.stdout)
-                    && let Ok(timestamp) = timestamp_str.trim().parse::<u64>() {
-                        let first_commit_time = std::time::UNIX_EPOCH + Duration::from_secs(timestamp);
-                        if let Ok(age) = SystemTime::now().duration_since(first_commit_time) {
-                            self.repo_age_days = Some(age.as_secs_f64() / 86400.0);
-                        }
-                    }
+            && let Ok(timestamp_str) = String::from_utf8(output.stdout)
+            && let Ok(timestamp) = timestamp_str.trim().parse::<u64>()
+        {
+            let first_commit_time = std::time::UNIX_EPOCH + Duration::from_secs(timestamp);
+            if let Ok(age) = SystemTime::now().duration_since(first_commit_time) {
+                self.repo_age_days = Some(age.as_secs_f64() / 86400.0);
+            }
+        }
     }
 
     /// Get the primary language by lines of code.

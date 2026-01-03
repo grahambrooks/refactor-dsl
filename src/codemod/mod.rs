@@ -44,8 +44,8 @@ pub use discovery::{
 pub use executor::{CodemodExecutor, CodemodResult, CodemodSummary, RepoResult, RepoStatus};
 pub use filter::RepoFilter;
 pub use upgrade::{
-    angular_v4v5_upgrade, rxjs_5_to_6_upgrade, AngularV4V5Upgrade, ClosureUpgrade, RxJS5To6Upgrade,
-    Upgrade,
+    AngularV4V5Upgrade, ClosureUpgrade, RxJS5To6Upgrade, Upgrade, angular_v4v5_upgrade,
+    rxjs_5_to_6_upgrade,
 };
 
 use crate::error::{RefactorError, Result};
@@ -370,11 +370,7 @@ impl Codemod {
     /// Enable creating a pull request after pushing.
     ///
     /// Requires `push_branch()` to be enabled.
-    pub fn create_pr(
-        mut self,
-        title: impl Into<String>,
-        body: impl Into<String>,
-    ) -> Self {
+    pub fn create_pr(mut self, title: impl Into<String>, body: impl Into<String>) -> Self {
         self.create_pr_enabled = true;
         self.pr_title = Some(title.into());
         self.pr_body = Some(body.into());

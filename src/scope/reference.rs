@@ -138,10 +138,7 @@ impl ReferenceIndex {
             .entry(name)
             .or_default()
             .push(binding.clone());
-        self.bindings_by_file
-            .entry(file)
-            .or_default()
-            .push(binding);
+        self.bindings_by_file.entry(file).or_default().push(binding);
     }
 
     /// Add multiple bindings.
@@ -252,7 +249,10 @@ impl ReferenceIndex {
         let kind_match = match (&reference.kind, &binding.kind) {
             (ReferenceKind::Call, BindingKind::Function | BindingKind::Method) => true,
             (ReferenceKind::Type, k) if k.is_type() => true,
-            (ReferenceKind::Read | ReferenceKind::Write, BindingKind::Variable | BindingKind::Parameter | BindingKind::Field) => true,
+            (
+                ReferenceKind::Read | ReferenceKind::Write,
+                BindingKind::Variable | BindingKind::Parameter | BindingKind::Field,
+            ) => true,
             (ReferenceKind::Import, BindingKind::Import) => true,
             (ReferenceKind::Inheritance, BindingKind::Class | BindingKind::Interface) => true,
             _ => false,

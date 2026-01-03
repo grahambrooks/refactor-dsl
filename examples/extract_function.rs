@@ -36,8 +36,7 @@ fn process_order(order: &Order) -> Result<(), Error> {
 
     // Create an extract function operation
     // We want to extract the validation logic (lines 3-11) into a separate function
-    let extract = ExtractFunction::new("validate_order")
-        .with_visibility(Visibility::Private);
+    let extract = ExtractFunction::new("validate_order").with_visibility(Visibility::Private);
 
     println!("\nOperation: {}", extract.name());
     println!("Target: Extract lines 3-11 into 'validate_order' function");
@@ -90,8 +89,7 @@ fn calculate_price(quantity: u32, unit_price: f64, discount: f64) -> f64 {
     println!("Original code:");
     println!("{}", var_source);
 
-    let extract_var = ExtractVariable::new("discounted_price")
-        .replace_all_occurrences();
+    let extract_var = ExtractVariable::new("discounted_price").replace_all_occurrences();
 
     println!("Operation: {}", extract_var.name());
     println!("Target: Extract 'quantity as f64 * unit_price' into variable");
@@ -110,7 +108,9 @@ fn calculate_price(quantity: u32, unit_price: f64, discount: f64) -> f64 {
     println!("\n=== RefactoringRunner API ===\n");
     println!("You can use the RefactoringRunner for more control:");
     println!();
-    println!("{}", r#"
+    println!(
+        "{}",
+        r#"
     let result = RefactoringRunner::new(ExtractFunction::new("my_fn"))
         .in_file("src/lib.rs")
         .at_range(Range::new(Position::new(10, 0), Position::new(20, 0)))
@@ -122,7 +122,8 @@ fn calculate_price(quantity: u32, unit_price: f64, discount: f64) -> f64 {
         println!("Preview: {}", result.preview);
         // Apply: result.apply()?;
     }
-"#);
+"#
+    );
 
     Ok(())
 }

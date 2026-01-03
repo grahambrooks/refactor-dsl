@@ -39,12 +39,12 @@ impl BranchOps for GitOps {
         let refname = format!("refs/heads/{}", name);
 
         // Get the reference
-        let reference = self
-            .repo
-            .find_reference(&refname)
-            .map_err(|_| RefactorError::BranchError {
-                message: format!("Branch '{}' not found", name),
-            })?;
+        let reference =
+            self.repo
+                .find_reference(&refname)
+                .map_err(|_| RefactorError::BranchError {
+                    message: format!("Branch '{}' not found", name),
+                })?;
 
         // Get the tree to checkout
         let obj = reference.peel(git2::ObjectType::Commit)?;
@@ -66,9 +66,7 @@ impl BranchOps for GitOps {
     }
 
     fn branch_exists(&self, name: &str) -> bool {
-        self.repo
-            .find_branch(name, git2::BranchType::Local)
-            .is_ok()
+        self.repo.find_branch(name, git2::BranchType::Local).is_ok()
     }
 
     fn current_branch(&self) -> Result<String> {

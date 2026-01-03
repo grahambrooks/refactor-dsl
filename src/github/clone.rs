@@ -83,10 +83,12 @@ fn update_existing_repo(repo_path: &Path, default_branch: &str, info: &GitHubRep
     })?;
 
     // Fetch from origin
-    let mut remote = repo.find_remote("origin").map_err(|e| RefactorError::CloneError {
-        repo: info.full_name.clone(),
-        message: format!("Failed to find origin remote: {}", e),
-    })?;
+    let mut remote = repo
+        .find_remote("origin")
+        .map_err(|e| RefactorError::CloneError {
+            repo: info.full_name.clone(),
+            message: format!("Failed to find origin remote: {}", e),
+        })?;
 
     remote
         .fetch(&[default_branch], None, None)
@@ -103,10 +105,12 @@ fn update_existing_repo(repo_path: &Path, default_branch: &str, info: &GitHubRep
             message: format!("Failed to find FETCH_HEAD: {}", e),
         })?;
 
-    let commit = fetch_head.peel_to_commit().map_err(|e| RefactorError::CloneError {
-        repo: info.full_name.clone(),
-        message: format!("Failed to get commit: {}", e),
-    })?;
+    let commit = fetch_head
+        .peel_to_commit()
+        .map_err(|e| RefactorError::CloneError {
+            repo: info.full_name.clone(),
+            message: format!("Failed to get commit: {}", e),
+        })?;
 
     // Reset to the fetched commit
     repo.reset(commit.as_object(), git2::ResetType::Hard, None)
@@ -118,10 +122,11 @@ fn update_existing_repo(repo_path: &Path, default_branch: &str, info: &GitHubRep
     // Checkout the default branch
     let refname = format!("refs/heads/{}", default_branch);
     if repo.find_reference(&refname).is_ok() {
-        repo.set_head(&refname).map_err(|e| RefactorError::CloneError {
-            repo: info.full_name.clone(),
-            message: format!("Failed to set HEAD: {}", e),
-        })?;
+        repo.set_head(&refname)
+            .map_err(|e| RefactorError::CloneError {
+                repo: info.full_name.clone(),
+                message: format!("Failed to set HEAD: {}", e),
+            })?;
     }
 
     Ok(())
