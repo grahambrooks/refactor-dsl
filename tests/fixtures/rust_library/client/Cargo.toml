@@ -1,0 +1,8 @@
+[package]
+name = "client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# In a real project, this would be:
+# mylib = "1.0"
