@@ -103,8 +103,9 @@ pub mod transform;
 /// Prelude for convenient imports.
 pub mod prelude {
     pub use crate::analyzer::{
-        AnalysisResult, ApiChange, ApiExtractor, ChangeDetector, ConfigBasedUpgrade,
-        GeneratedUpgrade, LibraryAnalyzer, TransformSpec, UpgradeConfig, UpgradeGenerator,
+        AnalysisResult, ApiChange, ApiExtractor, ChangeDetector, ChangeKind, ConfigBasedUpgrade,
+        FileContent, GeneratedUpgrade, LibraryAnalyzer, Transform as AnalyzerTransform,
+        TransformSpec, UpgradeConfig, UpgradeGenerator,
     };
     pub use crate::codemod::{
         AdvancedRepoFilter, AngularV4V5Upgrade, Codemod, CodemodResult, ComparisonOp,
