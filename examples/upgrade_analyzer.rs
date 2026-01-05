@@ -60,7 +60,10 @@ fn main() -> Result<()> {
     let fixture_dir = Path::new("tests/fixtures").join(format!("{}_library", language));
 
     if !fixture_dir.exists() {
-        println!("Error: Fixture directory not found: {}", fixture_dir.display());
+        println!(
+            "Error: Fixture directory not found: {}",
+            fixture_dir.display()
+        );
         println!("\nAvailable languages:");
         list_available_fixtures();
         return Ok(());
@@ -377,10 +380,11 @@ fn collect_source_files(dir: &Path, extension: &str) -> Result<Vec<PathBuf>> {
     }
 
     walk_dir(dir, extension, &mut files).map_err(|e| {
-        RefactorError::Io(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("Failed to read directory {}: {}", dir.display(), e),
-        ))
+        RefactorError::Io(std::io::Error::other(format!(
+            "Failed to read directory {}: {}",
+            dir.display(),
+            e
+        )))
     })?;
 
     Ok(files)
@@ -391,10 +395,11 @@ fn read_files_to_content(files: &[PathBuf]) -> Result<Vec<FileContent>> {
 
     for file in files {
         let content = fs::read_to_string(file).map_err(|e| {
-            RefactorError::Io(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to read file {}: {}", file.display(), e),
-            ))
+            RefactorError::Io(std::io::Error::other(format!(
+                "Failed to read file {}: {}",
+                file.display(),
+                e
+            )))
         })?;
 
         contents.push(FileContent {

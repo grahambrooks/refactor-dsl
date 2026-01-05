@@ -77,14 +77,14 @@ fn test_rust_library_change_detection() {
     assert!(!changes.is_empty(), "Expected to detect API changes");
 
     // Verify specific expected changes
-    let change_descriptions: Vec<String> = changes
-        .iter()
-        .map(|c| format!("{:?}", c.kind))
-        .collect();
+    let change_descriptions: Vec<String> =
+        changes.iter().map(|c| format!("{:?}", c.kind)).collect();
 
     // Check for expected renames
     assert!(
-        change_descriptions.iter().any(|d| d.contains("get_user") && d.contains("fetch_user")),
+        change_descriptions
+            .iter()
+            .any(|d| d.contains("get_user") && d.contains("fetch_user")),
         "Expected get_user -> fetch_user rename. Found: {:?}",
         change_descriptions
     );
@@ -137,10 +137,7 @@ fn test_typescript_library_change_detection() {
             if old_name == "getUser" && new_name == "fetchUser")
     });
 
-    assert!(
-        has_get_user_rename,
-        "Expected getUser -> fetchUser rename"
-    );
+    assert!(has_get_user_rename, "Expected getUser -> fetchUser rename");
 }
 
 /// Test that Python library changes are detected correctly.
@@ -348,7 +345,10 @@ fn test_codemod_generation() {
 
     // Verify upgrade properties
     assert_eq!(upgrade.name(), "rust-v1-to-v2");
-    assert!(!upgrade.transforms.is_empty(), "Expected transforms to be generated");
+    assert!(
+        !upgrade.transforms.is_empty(),
+        "Expected transforms to be generated"
+    );
 
     // Verify the upgrade report can be generated
     let report = upgrade.report();
