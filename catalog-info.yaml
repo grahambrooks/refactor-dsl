@@ -1,0 +1,27 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: refactor-dsl
+  title: Refactor DSL
+  description: DSL for multi-language code refactoring with Git-aware matching and LSP integration.
+  annotations:
+    github.com/project-slug: grahambrooks/refactor-dsl
+    backstage.io/source-location: url:https://github.com/grahambrooks/refactor-dsl
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - rust
+    - tree-sitter
+    - lsp
+    - refactoring
+    - cli
+  links:
+    - title: Repository
+      url: https://github.com/grahambrooks/refactor-dsl
+    - title: Documentation
+      url: https://grahambrooks.github.io/refactor-dsl/
+spec:
+  type: library
+  lifecycle: experimental
+  owner: grahambrooks
+
+
