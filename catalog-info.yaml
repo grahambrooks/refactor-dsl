@@ -21,7 +21,6 @@ metadata:
       url: https://grahambrooks.github.io/refactor-dsl/
 spec:
   type: library
+  system: developer-tools
   lifecycle: experimental
-  owner: grahambrooks
-
-
+  owner: user:grahambrooks
