@@ -124,7 +124,7 @@ impl AstTransform {
         }
 
         // Sort by start position in reverse order for safe replacement
-        matches.sort_by(|a, b| b.start_byte.cmp(&a.start_byte));
+        matches.sort_by_key(|m| std::cmp::Reverse(m.start_byte));
         Ok(matches)
     }
 
