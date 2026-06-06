@@ -84,7 +84,7 @@ impl PushOps for GitOps {
 
     fn remote_url(&self, remote_name: &str) -> Result<String> {
         let remote = self.repo.find_remote(remote_name)?;
-        remote.url().map(String::from).ok_or_else(|| {
+        remote.url().map(String::from).map_err(|_| {
             RefactorError::InvalidConfig(format!("Remote '{}' has no URL", remote_name))
         })
     }
@@ -95,7 +95,10 @@ impl PushOps for GitOps {
 
     fn list_remotes(&self) -> Result<Vec<String>> {
         let remotes = self.repo.remotes()?;
-        Ok(remotes.iter().filter_map(|r| r.map(String::from)).collect())
+        Ok(remotes
+            .iter()
+            .filter_map(|r| r.ok().flatten().map(String::from))
+            .collect())
     }
 }
 

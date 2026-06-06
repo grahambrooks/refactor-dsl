@@ -118,7 +118,7 @@ impl GitMatcher {
     fn check_branch(&self, repo: &Repository, expected: &str) -> Result<bool> {
         let head = repo.head()?;
         if head.is_branch()
-            && let Some(name) = head.shorthand()
+            && let Ok(name) = head.shorthand()
         {
             return Ok(name == expected);
         }
