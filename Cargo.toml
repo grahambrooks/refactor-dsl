@@ -19,13 +19,13 @@ tree-sitter = "0.26"
 tree-sitter-rust = "0.24"
 tree-sitter-typescript = "0.23"
 tree-sitter-python = "0.25"
-tree-sitter-go = "0.23"
+tree-sitter-go = "0.25"
 tree-sitter-java = "0.23"
 tree-sitter-c-sharp = "0.23"
 tree-sitter-ruby = "0.23"
 
 # Git operations
-git2 = "0.20"
+git2 = { version = "0.21", features = ["ssh", "https"] }
 
 # File system
 walkdir = "2.5"
@@ -46,7 +46,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # Diff generation
-similar = "2.6"
+similar = "3.1"
 
 # Tree-sitter streaming iterator
 streaming-iterator = "0.1"
@@ -56,7 +56,7 @@ lsp-types = "0.97"
 url = "2.5"
 
 # LSP server installer
-reqwest = { version = "0.12", features = ["blocking", "json"] }
+reqwest = { version = "0.13", features = ["blocking", "json"] }
 urlencoding = "2.1"
 
 # Code generation
@@ -66,11 +66,11 @@ syn = "2.0"
 prettyplease = "0.2"
 
 # GitHub API
-octocrab = "0.49"
+octocrab = "0.53"
 tokio = { version = "1.44", features = ["rt-multi-thread"] }
 serde_yaml = "0.9"
 flate2 = "1.0"
-zip = "7.0.0"
+zip = "8.6"
 dirs = "6.0"
 tar = "0.4"
 

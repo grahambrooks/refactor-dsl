@@ -21,9 +21,17 @@ pub struct PullRequest {
 
 impl From<OctocrabPR> for PullRequest {
     fn from(pr: OctocrabPR) -> Self {
+        let head = pr.head.map(|h| PullRequestRef {
+            ref_name: h.ref_field,
+            sha: h.sha,
+        });
+        let base = pr.base.map(|b| PullRequestRef {
+            ref_name: b.ref_field,
+            sha: b.sha,
+        });
         Self {
-            id: pr.id.0,
-            number: pr.number,
+            id: pr.id.map(|id| id.0).unwrap_or_default(),
+            number: pr.number.unwrap_or_default(),
             html_url: pr.html_url.map(|u| u.to_string()).unwrap_or_default(),
             state: pr
                 .state
@@ -31,14 +39,8 @@ impl From<OctocrabPR> for PullRequest {
                 .unwrap_or_default(),
             title: pr.title.unwrap_or_default(),
             body: pr.body,
-            head: PullRequestRef {
-                ref_name: pr.head.ref_field,
-                sha: pr.head.sha,
-            },
-            base: PullRequestRef {
-                ref_name: pr.base.ref_field,
-                sha: pr.base.sha,
-            },
+            head: head.unwrap_or_default(),
+            base: base.unwrap_or_default(),
             draft: pr.draft.unwrap_or(false),
             merged: pr.merged.unwrap_or(false),
         }
@@ -46,7 +48,7 @@ impl From<OctocrabPR> for PullRequest {
 }
 
 /// A reference (branch) in a pull request.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct PullRequestRef {
     pub ref_name: String,
     pub sha: String,

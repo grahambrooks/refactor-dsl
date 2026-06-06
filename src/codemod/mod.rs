@@ -431,7 +431,7 @@ fn get_default_branch(path: &std::path::Path) -> String {
         .ok()
         .and_then(|repo| {
             let head = repo.head().ok()?;
-            head.shorthand().map(String::from)
+            head.shorthand().ok().map(String::from)
         })
         .unwrap_or_else(|| "main".to_string())
 }

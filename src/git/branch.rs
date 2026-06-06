@@ -75,7 +75,7 @@ impl BranchOps for GitOps {
         if head.is_branch() {
             head.shorthand()
                 .map(String::from)
-                .ok_or_else(|| RefactorError::BranchError {
+                .map_err(|_| RefactorError::BranchError {
                     message: "HEAD is detached or has no shorthand name".into(),
                 })
         } else {
