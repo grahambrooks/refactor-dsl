@@ -1,0 +1,35 @@
+src/git/branch.rs
+  s_942c698aa4f420::t_8de3aee4875d77 78
+src/github/pr.rs
+  s_942c698aa4f420::t_2d5cc3ba83d07f 24-31,33-34,42-43
+  s_942c698aa4f420::t_2af581e0276bda 51
+src/codemod/mod.rs
+  s_942c698aa4f420::t_12cfa0bb98f82d 434
+src/matcher/git.rs
+  s_942c698aa4f420::t_9f8c85ca6e4734 121
+src/git/push.rs
+  s_942c698aa4f420::t_00673f49c642f7 87
+  s_942c698aa4f420::t_e541e72ff09f6a 98-101
+Cargo.toml
+  s_942c698aa4f420::t_8aeb3736d1848a 73
+  s_942c698aa4f420::t_0ec38bc6d7b98d 49
+  s_942c698aa4f420::t_371dce6baa159c 22
+  s_942c698aa4f420::t_0f256a008ef830 28
+  s_942c698aa4f420::t_51341285de66d6 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "e369de7e1bcc64b9b455d51becef12ba2457dfb4",
+  "prompts": {},
+  "sessions": {
+    "s_942c698aa4f420": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4688fb04-15a8-4d54-8de2-d4091d7ca306",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Graham Brooks <graham@grahambrooks.com>"
+    }
+  }
+}
