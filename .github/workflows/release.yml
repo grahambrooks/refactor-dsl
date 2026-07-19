@@ -1,0 +1,148 @@
+# Standard release workflow for grahambrooks Rust CLIs.
+#
+# Cutting a release: bump the version in Cargo.toml to the next CalVer
+# (YYYY.M.MICRO), commit, then push a matching tag:
+#
+#   v=$(release-kit/calver.sh next "$(awk -F'\"' '/^version = / {print $2; exit}' Cargo.toml)")
+#   # set Cargo.toml version to $v, commit
+#   git tag "v$v" && git push --follow-tags
+#
+# On the tag push this workflow verifies the tag matches Cargo.toml, builds
+# binaries for macOS-arm64 / Linux-arm64 / Linux-x64, publishes a GitHub Release
+# with sha256'd tarballs, and updates the in-repo Homebrew formula.
+#
+# Per-project settings live in .release.env (BIN_NAME, FORMULA_*), not here, so
+# this file stays byte-identical across every repo and is easy to re-sync.
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  verify:
+    name: verify version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Tag matches Cargo.toml
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME#v}"
+          crate=$(awk -F'"' '/^version = / { print $2; exit }' Cargo.toml)
+          if [ "$tag" != "$crate" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match Cargo.toml version $crate"
+            exit 1
+          fi
+          echo "Tag $GITHUB_REF_NAME matches Cargo.toml version $crate"
+
+  create-release:
+    name: create github release
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: build (${{ matrix.target }})
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-24.04-arm
+          - target: aarch64-apple-darwin
+            os: macos-14
+          # x86_64-apple-darwin (Intel Mac) intentionally not built — those
+          # users `cargo install` from source (see the formula's on_intel).
+    steps:
+      - uses: actions/checkout@v6
+      - name: Load release config
+        run: grep -E '^[A-Za-z_][A-Za-z0-9_]*=' .release.env >> "$GITHUB_ENV"
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.target }}
+      - name: Build, package, and upload
+        uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: ${{ env.BIN_NAME }}
+          target: ${{ matrix.target }}
+          archive: $bin-$tag-$target
+          tar: unix
+          checksum: sha256
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  update-formula:
+    name: update homebrew formula
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load release config
+        run: grep -E '^[A-Za-z_][A-Za-z0-9_]*=' .release.env >> "$GITHUB_ENV"
+      - name: Render formula
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          version="${tag#v}"
+          mkdir -p Formula   # dir may be absent (git doesn't track empty dirs)
+          sleep 10   # let release assets settle
+
+          empty_sha=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+          fetch() {
+            local target="$1"
+            local url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}/${BIN_NAME}-${tag}-${target}.tar.gz"
+            local sha
+            sha=$(curl -sL "$url" | sha256sum | awk '{print $1}')
+            if [ -z "$sha" ] || [ "$sha" = "$empty_sha" ]; then
+              echo "::error::could not fetch $url" >&2
+              exit 1
+            fi
+            echo "$sha"
+          }
+
+          sha_darwin_arm=$(fetch aarch64-apple-darwin)
+          sha_linux_arm=$(fetch aarch64-unknown-linux-gnu)
+          sha_linux_intel=$(fetch x86_64-unknown-linux-gnu)
+
+          python3 scripts/render-formula.py \
+            "$version" "$sha_darwin_arm" "$sha_linux_arm" "$sha_linux_intel" \
+            > "Formula/${FORMULA_NAME}.rb"
+      - name: Commit updated formula
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "Formula/${FORMULA_NAME}.rb"
+          # stage-then-diff so a brand-new (untracked) formula is also detected
+          if git diff --cached --quiet; then
+            echo "Formula unchanged"
+            exit 0
+          fi
+          git commit -m "Update Homebrew formula for ${GITHUB_REF_NAME}"
+          git push origin main

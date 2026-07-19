@@ -1,6 +1,6 @@
 [package]
 name = "refactor"
-version = "0.1.0"
+version = "2026.7.0"
 edition = "2024"
 description = "A DSL for multi-language code refactoring with Git-aware matching"
 license = "MIT"
