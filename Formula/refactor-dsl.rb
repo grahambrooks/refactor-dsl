@@ -6,8 +6,8 @@ class RefactorDsl < Formula
 
   on_macos do
     on_arm do
-      url "https://github.com/grahambrooks/refactor-dsl/releases/download/v2026.7.0/refactor-v2026.7.0-aarch64-apple-darwin.tar.gz"
-      sha256 "4df65243aad32a24b3f19eff8419b92355fb6650d08b6431cbc36d0ca1fddb73"
+      url "https://github.com/grahambrooks/refactor-dsl/archive/refs/tags/v2026.8.1.tar.gz"
+      sha256 "1d9874509954480601a14c047bef5c6bab8130ecbfb19785f2d049244e754867"
     end
     on_intel do
       odie "Intel Mac binaries are not provided. Run `cargo install --git https://github.com/grahambrooks/refactor-dsl --locked` to build from source."
