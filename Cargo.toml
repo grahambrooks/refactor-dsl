@@ -71,7 +71,7 @@ tokio = { version = "1.44", features = ["rt-multi-thread"] }
 serde_yaml = "0.9"
 flate2 = "1.0"
 zip = "8.6"
-dirs = "6.0"
+dirs = "7.0"
 tar = "0.4"
 
 [dev-dependencies]
