@@ -15,7 +15,7 @@ path = "src/bin/refactor.rs"
 
 [dependencies]
 # Tree-sitter for multi-language parsing
-tree-sitter = "0.27"
+tree-sitter = "0.26"
 tree-sitter-rust = "0.24"
 tree-sitter-typescript = "0.23"
 tree-sitter-python = "0.25"
@@ -63,10 +63,10 @@ urlencoding = "2.1"
 quote = "1.0"
 proc-macro2 = "1.0"
 syn = "2.0"
-prettyplease = "0.3"
+prettyplease = "0.2"
 
 # GitHub API
-octocrab = "0.54"
+octocrab = "0.53"
 tokio = { version = "1.44", features = ["rt-multi-thread"] }
 serde_yaml = "0.9"
 flate2 = "1.0"
