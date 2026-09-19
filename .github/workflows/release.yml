@@ -1,148 +1,199 @@
-# Standard release workflow for grahambrooks Rust CLIs.
+# Standard release workflow for grahambrooks Rust tools (release-kit v2).
 #
-# Cutting a release: bump the version in Cargo.toml to the next CalVer
-# (YYYY.M.MICRO), commit, then push a matching tag:
+# This file and scripts/release.py are byte-identical in every repo; everything
+# repo-specific lives in .release.env. Re-sync with release-kit/stamp.sh.
 #
-#   v=$(release-kit/calver.sh next "$(awk -F'\"' '/^version = / {print $2; exit}' Cargo.toml)")
-#   # set Cargo.toml version to $v, commit
-#   git tag "v$v" && git push --follow-tags
+# The tag is the version. Push a CalVer tag (vYYYY.M.N) — by hand, or let
+# auto-managed's monthly job create it — and this workflow:
+#   1. plans the build from .release.env and the tag,
+#   2. makes sure a GitHub Release exists for the tag (auto-managed creates one),
+#   3. stamps the tag's version into Cargo.toml and builds every target,
+#      uploading <bin>-<tag>-<target>.tar.gz (.zip on Windows) with the binaries
+#      at the archive root — the layout bx and Homebrew both expect,
+#   4. publishes SHA256SUMS, then opens and merges one PR that updates the in-repo
+#      Homebrew formula and bumps Cargo.toml to the released version,
+#   5. optionally publishes to crates.io (PUBLISH_CRATE=true), last, because it is
+#      the one step that cannot be undone.
 #
-# On the tag push this workflow verifies the tag matches Cargo.toml, builds
-# binaries for macOS-arm64 / Linux-arm64 / Linux-x64, publishes a GitHub Release
-# with sha256'd tarballs, and updates the in-repo Homebrew formula.
-#
-# Per-project settings live in .release.env (BIN_NAME, FORMULA_*), not here, so
-# this file stays byte-identical across every repo and is easy to re-sync.
+# Re-run a tag (e.g. after fixing a runner problem): Actions → release → Run
+# workflow, with the tag. The tag must already contain this workflow.
 name: release
 
 on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and publish (e.g. v2026.9.3)
+        required: true
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: 1
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
-  verify:
-    name: verify version
+  plan:
+    name: plan
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+      archive: ${{ steps.plan.outputs.archive }}
+      bins: ${{ steps.plan.outputs.bins }}
+      package: ${{ steps.plan.outputs.package }}
+      features: ${{ steps.plan.outputs.features }}
+      manifest_path: ${{ steps.plan.outputs.manifest_path }}
+      publish_crate: ${{ steps.plan.outputs.publish_crate }}
     steps:
-      - uses: actions/checkout@v6
-      - name: Tag matches Cargo.toml
-        run: |
-          set -euo pipefail
-          tag="${GITHUB_REF_NAME#v}"
-          crate=$(awk -F'"' '/^version = / { print $2; exit }' Cargo.toml)
-          if [ "$tag" != "$crate" ]; then
-            echo "::error::tag $GITHUB_REF_NAME does not match Cargo.toml version $crate"
-            exit 1
-          fi
-          echo "Tag $GITHUB_REF_NAME matches Cargo.toml version $crate"
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+      - id: plan
+        env:
+          REPO_PRIVATE: ${{ github.event.repository.private }}
+        run: python3 scripts/release.py plan "$TAG"
 
-  create-release:
-    name: create github release
-    needs: verify
+  release:
+    name: ensure github release
+    needs: plan
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
-      - uses: taiki-e/create-gh-release-action@v1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists"
+          else
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" --verify-tag --title "$TAG" --generate-notes
+          fi
 
   build:
     name: build (${{ matrix.target }})
-    needs: create-release
+    needs: [plan, release]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-24.04-arm
-          - target: aarch64-apple-darwin
-            os: macos-14
-          # x86_64-apple-darwin (Intel Mac) intentionally not built — those
-          # users `cargo install` from source (see the formula's on_intel).
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v6
-      - name: Load release config
-        run: grep -E '^[A-Za-z_][A-Za-z0-9_]*=' .release.env >> "$GITHUB_ENV"
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
       - uses: Swatinem/rust-cache@v2
         with:
           key: release-${{ matrix.target }}
+          workspaces: ${{ matrix.workspace }}
+      - name: Stamp version ${{ needs.plan.outputs.version }}
+        run: python3 scripts/release.py set-version "${{ needs.plan.outputs.version }}"
       - name: Build, package, and upload
         uses: taiki-e/upload-rust-binary-action@v1
         with:
-          bin: ${{ env.BIN_NAME }}
+          bin: ${{ needs.plan.outputs.bins }}
+          package: ${{ needs.plan.outputs.package }}
+          features: ${{ needs.plan.outputs.features }}
+          manifest-path: ${{ needs.plan.outputs.manifest_path }}
           target: ${{ matrix.target }}
-          archive: $bin-$tag-$target
+          archive: ${{ needs.plan.outputs.archive }}
           tar: unix
-          checksum: sha256
-          token: ${{ secrets.GITHUB_TOKEN }}
+          zip: windows
+          ref: refs/tags/${{ env.TAG }}
+          token: ${{ github.token }}
 
-  update-formula:
-    name: update homebrew formula
-    needs: build
+  finalize:
+    name: checksums + formula
+    needs: [plan, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
-          ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Load release config
-        run: grep -E '^[A-Za-z_][A-Za-z0-9_]*=' .release.env >> "$GITHUB_ENV"
-      - name: Render formula
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Publish SHA256SUMS
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          tag="${GITHUB_REF_NAME}"
-          version="${tag#v}"
-          mkdir -p Formula   # dir may be absent (git doesn't track empty dirs)
-          sleep 10   # let release assets settle
-
-          empty_sha=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-          fetch() {
-            local target="$1"
-            local url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${tag}/${BIN_NAME}-${tag}-${target}.tar.gz"
-            local sha
-            sha=$(curl -sL "$url" | sha256sum | awk '{print $1}')
-            if [ -z "$sha" ] || [ "$sha" = "$empty_sha" ]; then
-              echo "::error::could not fetch $url" >&2
-              exit 1
-            fi
-            echo "$sha"
-          }
-
-          sha_darwin_arm=$(fetch aarch64-apple-darwin)
-          sha_linux_arm=$(fetch aarch64-unknown-linux-gnu)
-          sha_linux_intel=$(fetch x86_64-unknown-linux-gnu)
-
-          python3 scripts/render-formula.py \
-            "$version" "$sha_darwin_arm" "$sha_linux_arm" "$sha_linux_intel" \
-            > "Formula/${FORMULA_NAME}.rb"
-      - name: Commit updated formula
+          mkdir -p "$RUNNER_TEMP/dist"
+          gh release download "$TAG" -R "$GITHUB_REPOSITORY" -D "$RUNNER_TEMP/dist" -p '*.tar.gz' -p '*.zip'
+          python3 scripts/release.py sums "$RUNNER_TEMP/dist" > "$RUNNER_TEMP/SHA256SUMS"
+          cat "$RUNNER_TEMP/SHA256SUMS"
+          gh release upload "$TAG" -R "$GITHUB_REPOSITORY" "$RUNNER_TEMP/SHA256SUMS" --clobber
+      - name: Render formula and bump Cargo.toml
+        run: |
+          set -euo pipefail
+          python3 scripts/release.py formula "$TAG" "$RUNNER_TEMP/SHA256SUMS"
+          python3 scripts/release.py set-version "${{ needs.plan.outputs.version }}"
+      # The automation-guard ruleset only lets changes reach the default branch
+      # through a pull request; it asks for no approvals or checks, so opening and
+      # merging one satisfies it rather than working around it.
+      - name: Open and merge release PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ github.event.repository.default_branch }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "Formula/${FORMULA_NAME}.rb"
-          # stage-then-diff so a brand-new (untracked) formula is also detected
+          git add -A
           if git diff --cached --quiet; then
-            echo "Formula unchanged"
+            echo "Formula and version already current"
             exit 0
           fi
-          git commit -m "Update Homebrew formula for ${GITHUB_REF_NAME}"
-          git push origin main
+          branch="release/${TAG}"
+          title="Release ${TAG}: update Homebrew formula and version"
+          git checkout -b "$branch"
+          git commit -m "$title"
+          git push --force origin "$branch"
+          pr=$(gh pr list --head "$branch" --state open --json number -q '.[0].number // empty')
+          if [ -z "$pr" ]; then
+            pr=$(gh pr create --base "$BASE" --head "$branch" --title "$title" \
+                   --body "Generated by the release workflow from the published ${TAG} assets." \
+                 | awk -F/ '{print $NF}')
+          fi
+          if ! gh pr merge "$pr" --squash --delete-branch; then
+            state=$(gh pr view "$pr" --json state -q .state)
+            if [ "$state" != "MERGED" ]; then
+              echo "::error::release PR #${pr} could not be merged (state=${state})"
+              exit 1
+            fi
+          fi
+
+  publish-crate:
+    name: publish to crates.io
+    needs: [plan, finalize]
+    if: needs.plan.outputs.publish_crate == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish unless already published
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${CARGO_REGISTRY_TOKEN}" ]; then
+            echo "::error::PUBLISH_CRATE=true but the CARGO_REGISTRY_TOKEN secret is not set"
+            exit 1
+          fi
+          python3 scripts/release.py set-version "${{ needs.plan.outputs.version }}"
+          python3 scripts/release.py publish-crate "${{ needs.plan.outputs.version }}"
