@@ -1,0 +1,19 @@
+src/lsp/config.rs
+  s_f54f1521f2b840::t_ce0ec769cf4f2c 113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5bdce15b086cbb7f9529ad44ef32c602c9508c38",
+  "prompts": {},
+  "sessions": {
+    "s_f54f1521f2b840": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8b190df4-8557-4554-820a-4457d071c043",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Graham Brooks <graham@grahambrooks.com>"
+    }
+  }
+}
