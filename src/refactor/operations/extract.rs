@@ -163,7 +163,7 @@ impl ExtractFunction {
             let mut matches = cursor.matches(&query, tree.root_node(), source_bytes);
 
             while let Some(m) = matches.next() {
-                for capture in m.captures {
+                for capture in m.captures() {
                     if let Ok(text) = capture.node.utf8_text(source_bytes) {
                         identifiers.insert(text.to_string());
                     }

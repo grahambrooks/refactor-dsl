@@ -210,7 +210,7 @@ impl ChangeSignature {
             let mut return_type = None;
             let mut func_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {
@@ -572,7 +572,7 @@ impl ChangeSignature {
             let mut args_text = None;
             let mut args_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {

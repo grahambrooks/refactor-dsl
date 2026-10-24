@@ -98,7 +98,7 @@ impl AstMatcher {
 
         let mut query_matches = cursor.matches(query, tree.root_node(), source_bytes);
         while let Some(query_match) = query_matches.next() {
-            for capture in query_match.captures {
+            for capture in query_match.captures() {
                 let node = capture.node;
                 let capture_name = query.capture_names()[capture.index as usize].to_string();
                 let text = node.utf8_text(source_bytes).unwrap_or("").to_string();

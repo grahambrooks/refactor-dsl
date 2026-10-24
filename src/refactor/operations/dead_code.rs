@@ -317,7 +317,7 @@ impl FindDeadCode {
             let mut name = None;
             let mut def_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {
@@ -373,7 +373,7 @@ impl FindDeadCode {
         let mut count = 0;
 
         while let Some(m) = matches.next() {
-            for capture in m.captures {
+            for capture in m.captures() {
                 if let Ok(text) = capture.node.utf8_text(source_bytes)
                     && text == name
                 {
@@ -431,7 +431,7 @@ impl FindDeadCode {
         let mut items = Vec::new();
 
         while let Some(m) = matches.next() {
-            for capture in m.captures {
+            for capture in m.captures() {
                 if let Ok(text) = capture.node.utf8_text(source_bytes) {
                     let inner = text.trim();
                     let inner = if inner.starts_with('{') && inner.ends_with('}') {
@@ -518,7 +518,7 @@ impl FindDeadCode {
         ];
 
         while let Some(m) = matches.next() {
-            for capture in m.captures {
+            for capture in m.captures() {
                 if let Ok(text) = capture.node.utf8_text(source_bytes) {
                     let content = text
                         .trim_start_matches("//")

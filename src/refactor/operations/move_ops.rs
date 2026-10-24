@@ -124,7 +124,7 @@ impl MoveToFile {
             let mut def_range = None;
             let mut full_text = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {
@@ -508,7 +508,7 @@ impl MoveBetweenModules {
                 let mut mod_start = 0;
                 let mut mod_end = 0;
 
-                for capture in m.captures {
+                for capture in m.captures() {
                     let capture_name = query.capture_names()[capture.index as usize];
                     match capture_name {
                         "name" => {

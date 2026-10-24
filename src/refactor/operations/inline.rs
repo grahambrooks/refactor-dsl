@@ -112,7 +112,7 @@ impl InlineVariable {
             let mut value = None;
             let mut decl_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {
@@ -173,7 +173,7 @@ impl InlineVariable {
         let mut usages = Vec::new();
 
         while let Some(m) = matches.next() {
-            for capture in m.captures {
+            for capture in m.captures() {
                 if let Ok(text) = capture.node.utf8_text(source_bytes)
                     && text == var_name
                 {
@@ -457,7 +457,7 @@ impl InlineFunction {
             let mut body = None;
             let mut func_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {
@@ -546,7 +546,7 @@ impl InlineFunction {
             let mut args = None;
             let mut call_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {

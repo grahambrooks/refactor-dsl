@@ -334,7 +334,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut fn_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -411,7 +411,7 @@ impl ApiExtractor {
             let mut is_pub = false;
             let mut struct_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = struct_query.capture_names()[capture.index as usize];
                 match name {
                     "struct_name" => {
@@ -467,7 +467,7 @@ impl ApiExtractor {
             let mut is_pub = false;
             let mut enum_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = enum_query.capture_names()[capture.index as usize];
                 match name {
                     "enum_name" => {
@@ -512,14 +512,14 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32)
+            if let Some(child) = params_node.child(i)
                 && child.kind() == "parameter"
             {
                 let mut param_name = None;
                 let mut param_type = None;
 
                 for j in 0..child.child_count() {
-                    if let Some(sub) = child.child(j as u32) {
+                    if let Some(sub) = child.child(j) {
                         match sub.kind() {
                             "identifier" => {
                                 param_name = sub.utf8_text(source).ok().map(String::from);
@@ -580,7 +580,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut fn_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -650,7 +650,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut fn_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query2.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -723,7 +723,7 @@ impl ApiExtractor {
             let mut iface_name = None;
             let mut iface_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = iface_query.capture_names()[capture.index as usize];
                 match name {
                     "iface_name" => {
@@ -769,7 +769,7 @@ impl ApiExtractor {
             let mut class_name = None;
             let mut class_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -804,7 +804,7 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32) {
+            if let Some(child) = params_node.child(i) {
                 let kind = child.kind();
                 if kind == "required_parameter" || kind == "optional_parameter" {
                     let mut param_name = None;
@@ -812,7 +812,7 @@ impl ApiExtractor {
                     let is_optional = kind == "optional_parameter";
 
                     for j in 0..child.child_count() {
-                        if let Some(sub) = child.child(j as u32) {
+                        if let Some(sub) = child.child(j) {
                             match sub.kind() {
                                 "identifier" => {
                                     param_name = sub.utf8_text(source).ok().map(String::from);
@@ -875,7 +875,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut fn_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -946,7 +946,7 @@ impl ApiExtractor {
             let mut class_name = None;
             let mut class_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -988,7 +988,7 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32) {
+            if let Some(child) = params_node.child(i) {
                 let kind = child.kind();
                 if kind == "identifier" {
                     // Simple parameter
@@ -1007,7 +1007,7 @@ impl ApiExtractor {
                     let has_default = kind.contains("default");
 
                     for j in 0..child.child_count() {
-                        if let Some(sub) = child.child(j as u32) {
+                        if let Some(sub) = child.child(j) {
                             match sub.kind() {
                                 "identifier" => {
                                     param_name = sub.utf8_text(source).ok().map(String::from);
@@ -1081,7 +1081,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut fn_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -1157,7 +1157,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut method_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = method_query.capture_names()[capture.index as usize];
                 match name {
                     "method_name" => {
@@ -1230,7 +1230,7 @@ impl ApiExtractor {
             let mut struct_name = None;
             let mut struct_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = struct_query.capture_names()[capture.index as usize];
                 match name {
                     "struct_name" => {
@@ -1284,7 +1284,7 @@ impl ApiExtractor {
             let mut iface_name = None;
             let mut iface_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = iface_query.capture_names()[capture.index as usize];
                 match name {
                     "iface_name" => {
@@ -1326,14 +1326,14 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32)
+            if let Some(child) = params_node.child(i)
                 && child.kind() == "parameter_declaration"
             {
                 let mut param_names = Vec::new();
                 let mut param_type = None;
 
                 for j in 0..child.child_count() {
-                    if let Some(sub) = child.child(j as u32) {
+                    if let Some(sub) = child.child(j) {
                         match sub.kind() {
                             "identifier" => {
                                 if let Ok(name) = sub.utf8_text(source) {
@@ -1393,7 +1393,7 @@ impl ApiExtractor {
             let mut class_node = None;
             let mut is_public = false;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -1453,7 +1453,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut is_public = false;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = method_query.capture_names()[capture.index as usize];
                 match name {
                     "method_name" => {
@@ -1528,7 +1528,7 @@ impl ApiExtractor {
             let mut iface_node = None;
             let mut is_public = false;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = iface_query.capture_names()[capture.index as usize];
                 match name {
                     "iface_name" => {
@@ -1573,14 +1573,14 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32)
+            if let Some(child) = params_node.child(i)
                 && child.kind() == "formal_parameter"
             {
                 let mut param_name = None;
                 let mut param_type = None;
 
                 for j in 0..child.child_count() {
-                    if let Some(sub) = child.child(j as u32) {
+                    if let Some(sub) = child.child(j) {
                         match sub.kind() {
                             "identifier" => {
                                 param_name = sub.utf8_text(source).ok().map(String::from);
@@ -1637,7 +1637,7 @@ impl ApiExtractor {
             let mut class_node = None;
             let mut is_public = false;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -1699,7 +1699,7 @@ impl ApiExtractor {
             let mut return_node = None;
             let mut is_public = false;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = method_query.capture_names()[capture.index as usize];
                 match name {
                     "method_name" => {
@@ -1776,7 +1776,7 @@ impl ApiExtractor {
             let mut iface_node = None;
             let mut is_public = false;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = iface_query.capture_names()[capture.index as usize];
                 match name {
                     "iface_name" => {
@@ -1823,14 +1823,14 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32)
+            if let Some(child) = params_node.child(i)
                 && child.kind() == "parameter"
             {
                 let mut param_name = None;
                 let mut param_type = None;
 
                 for j in 0..child.child_count() {
-                    if let Some(sub) = child.child(j as u32) {
+                    if let Some(sub) = child.child(j) {
                         match sub.kind() {
                             "identifier" => {
                                 param_name = sub.utf8_text(source).ok().map(String::from);
@@ -1887,7 +1887,7 @@ impl ApiExtractor {
             let mut method_node = None;
             let mut params_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = method_query.capture_names()[capture.index as usize];
                 match name {
                     "method_name" => {
@@ -1947,7 +1947,7 @@ impl ApiExtractor {
             let mut class_name = None;
             let mut class_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -1991,7 +1991,7 @@ impl ApiExtractor {
             let mut module_name = None;
             let mut module_node = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = module_query.capture_names()[capture.index as usize];
                 match name {
                     "module_name" => {
@@ -2026,7 +2026,7 @@ impl ApiExtractor {
         let mut params = Vec::new();
 
         for i in 0..params_node.child_count() {
-            if let Some(child) = params_node.child(i as u32) {
+            if let Some(child) = params_node.child(i) {
                 match child.kind() {
                     "identifier" => {
                         if let Ok(name) = child.utf8_text(source) {

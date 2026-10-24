@@ -150,7 +150,7 @@ impl ScopeAnalyzer {
             let mut is_pub = false;
             let mut fn_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -195,7 +195,7 @@ impl ScopeAnalyzer {
             let mut is_pub = false;
             let mut struct_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = struct_query.capture_names()[capture.index as usize];
                 match name {
                     "struct_name" => {
@@ -254,7 +254,7 @@ impl ScopeAnalyzer {
             let mut fn_name = None;
             let mut fn_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -292,7 +292,7 @@ impl ScopeAnalyzer {
             let mut class_name = None;
             let mut class_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -342,7 +342,7 @@ impl ScopeAnalyzer {
             let mut fn_name = None;
             let mut fn_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -382,7 +382,7 @@ impl ScopeAnalyzer {
             let mut class_name = None;
             let mut class_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -435,7 +435,7 @@ impl ScopeAnalyzer {
             let mut fn_name = None;
             let mut fn_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = fn_query.capture_names()[capture.index as usize];
                 match name {
                     "fn_name" => {
@@ -478,7 +478,7 @@ impl ScopeAnalyzer {
             let mut struct_name = None;
             let mut struct_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = struct_query.capture_names()[capture.index as usize];
                 match name {
                     "struct_name" => {
@@ -534,7 +534,7 @@ impl ScopeAnalyzer {
             let mut is_public = false;
             let mut class_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -578,7 +578,7 @@ impl ScopeAnalyzer {
             let mut is_public = false;
             let mut method_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = method_query.capture_names()[capture.index as usize];
                 match name {
                     "method_name" => {
@@ -637,7 +637,7 @@ impl ScopeAnalyzer {
             let mut is_public = false;
             let mut class_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -683,7 +683,7 @@ impl ScopeAnalyzer {
             let mut is_public = false;
             let mut method_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = method_query.capture_names()[capture.index as usize];
                 match name {
                     "method_name" => {
@@ -742,7 +742,7 @@ impl ScopeAnalyzer {
             let mut method_name = None;
             let mut method_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = method_query.capture_names()[capture.index as usize];
                 match name {
                     "method_name" => {
@@ -782,7 +782,7 @@ impl ScopeAnalyzer {
             let mut class_name = None;
             let mut class_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = class_query.capture_names()[capture.index as usize];
                 match name {
                     "class_name" => {
@@ -818,7 +818,7 @@ impl ScopeAnalyzer {
             let mut module_name = None;
             let mut module_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let name = module_query.capture_names()[capture.index as usize];
                 match name {
                     "module_name" => {

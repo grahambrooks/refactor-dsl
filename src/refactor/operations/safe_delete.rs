@@ -137,7 +137,7 @@ impl SafeDelete {
             let mut name = None;
             let mut def_range = None;
 
-            for capture in m.captures {
+            for capture in m.captures() {
                 let capture_name = query.capture_names()[capture.index as usize];
                 match capture_name {
                     "name" => {
@@ -227,7 +227,7 @@ impl SafeDelete {
         let mut usages = Vec::new();
 
         while let Some(m) = matches.next() {
-            for capture in m.captures {
+            for capture in m.captures() {
                 if let Ok(text) = capture.node.utf8_text(source_bytes)
                     && text == symbol_name
                 {
@@ -298,7 +298,7 @@ impl SafeDelete {
                     let mut type_name = None;
                     let mut impl_range = None;
 
-                    for capture in m.captures {
+                    for capture in m.captures() {
                         let capture_name = query.capture_names()[capture.index as usize];
                         match capture_name {
                             "type" => {
