@@ -1,0 +1,41 @@
+Cargo.toml
+  s_c7db583e01ac64::t_1e1ac09f546111 18,65-66,69,73-74
+src/analyzer/extractor.rs
+  s_c7db583e01ac64::t_019df800018f0f 337,414,470,515,522,583,653,726,772,807,815,878,949,991,1010,1084,1160,1233,1287,1329,1336,1396,1456,1531,1576,1583,1640,1702,1779,1826,1833,1890,1950,1994,2029
+src/github/pr.rs
+  s_c7db583e01ac64::t_5d9342c6768d53 24-31,33-34,42-43
+src/matcher/ast.rs
+  s_c7db583e01ac64::t_2641a26b2e6b44 101
+src/refactor/operations/dead_code.rs
+  s_c7db583e01ac64::t_964cec146bb1ed 320,376,434,521
+src/refactor/operations/extract.rs
+  s_c7db583e01ac64::t_c35d5cd043dc36 166
+src/refactor/operations/inline.rs
+  s_c7db583e01ac64::t_03ecaa2720e5c5 115,176,460,549
+src/refactor/operations/move_ops.rs
+  s_c7db583e01ac64::t_374c4aabb86a03 127,511
+src/refactor/operations/safe_delete.rs
+  s_c7db583e01ac64::t_31c6e5c444995a 140,230,301
+src/refactor/operations/signature.rs
+  s_c7db583e01ac64::t_ea51993ee59552 213,575
+src/scope/mod.rs
+  s_c7db583e01ac64::t_f92185400f0724 153,198,257,295,345,385,438,481,537,581,640,686,745,785,821
+src/transform/ast.rs
+  s_c7db583e01ac64::t_4e21d150374d60 108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "82fe150b7fe648a8cad7878bca344dd7132ac48d",
+  "prompts": {},
+  "sessions": {
+    "s_c7db583e01ac64": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a64f563f-ca61-4776-97cf-501db44bb230",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Graham Brooks <graham@grahambrooks.com>"
+    }
+  }
+}
