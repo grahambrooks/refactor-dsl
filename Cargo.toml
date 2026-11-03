@@ -2,6 +2,7 @@
 name = "refactor"
 version = "2026.11.2"
 edition = "2024"
+rust-version = "1.99.1"
 description = "A DSL for multi-language code refactoring with Git-aware matching"
 license = "MIT"
 
