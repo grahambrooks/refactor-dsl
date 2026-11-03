@@ -31,4 +31,3 @@ RUN cargo fetch || true
 
 # Copy source last to leverage layer caching
 COPY . .
-

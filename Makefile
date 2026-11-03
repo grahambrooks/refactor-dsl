@@ -1,44 +1,42 @@
+# Developer targets. `make check` is the pre-push gate and runs exactly what the
+# CI `check` job runs (.github/workflows/ci.yml); `make hooks` wires it into git.
 CARGO ?= cargo
-export RUSTFLAGS := -Dwarnings
-export RUSTDOCFLAGS := -Dwarnings
+.DEFAULT_GOAL := help
 
-.PHONY: all pre-commit ci check fmt fmt-fix clippy test doc clean help
+.PHONY: help check pre-commit ci all fmt fmt-check fmt-fix lint clippy test doc hooks clean
 
-all: pre-commit
+help: ## List targets
+	@grep -hE '^[a-zA-Z0-9_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{ printf "  %-16s %s\n", $$1, $$2 }'
 
-pre-commit: fmt clippy check test doc
+check: fmt-check lint test ## The pre-push gate: the CI check job (fmt, clippy, test)
 
-ci: pre-commit
+pre-commit: check ## Alias for check
+ci: check ## Alias for check
+all: check
 
-check:
-	$(CARGO) check --all-features
-
-fmt:
-	$(CARGO) fmt --all -- --check
-
-fmt-fix:
+fmt: ## Format the code
 	$(CARGO) fmt --all
 
-clippy:
-	$(CARGO) clippy --all-targets --all-features
+fmt-fix: fmt
 
-test:
-	$(CARGO) test --all-features
+fmt-check: ## Fail if the code is not formatted
+	$(CARGO) fmt --all --check
 
-doc:
-	$(CARGO) doc --no-deps --all-features
+lint: ## Clippy with warnings denied, as CI runs it
+	$(CARGO) clippy --all-targets --all-features --locked -- -D warnings
 
-clean:
+clippy: lint
+
+test: ## Tests, as CI runs them
+	$(CARGO) test --all-features --locked
+
+doc: ## Build the API docs with warnings denied (CI's docs job)
+	RUSTDOCFLAGS=-Dwarnings $(CARGO) doc --no-deps --all-features --locked
+
+hooks: ## Install the prek git hooks (pre-commit and pre-push)
+	prek install
+
+clean: ## Remove build artifacts
 	$(CARGO) clean
 
-help:
-	@echo "Targets:"
-	@echo "  pre-commit  Run all checks performed in CI (fmt, clippy, check, test, doc)"
-	@echo "  ci          Alias for pre-commit"
-	@echo "  check       cargo check --all-features"
-	@echo "  fmt         cargo fmt --all -- --check"
-	@echo "  fmt-fix     cargo fmt --all (apply formatting)"
-	@echo "  clippy      cargo clippy --all-targets --all-features"
-	@echo "  test        cargo test --all-features"
-	@echo "  doc         cargo doc --no-deps --all-features"
-	@echo "  clean       cargo clean"
+include release.mk

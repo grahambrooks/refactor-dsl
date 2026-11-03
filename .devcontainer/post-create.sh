@@ -12,4 +12,3 @@ ls -ld /usr/local/cargo /usr/local/cargo/registry /usr/local/cargo/git
 # Verify cargo works
 cargo --version
 rustc --version
-

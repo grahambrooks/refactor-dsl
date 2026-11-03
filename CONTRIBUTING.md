@@ -57,20 +57,18 @@ Feature requests are welcome! Please provide:
 
 3. Add or update tests as needed
 
-4. Ensure all tests pass:
+4. Format your code:
    ```bash
-   cargo test
+   make fmt
    ```
 
-5. Run clippy and fix any warnings:
+5. Run the same checks CI runs (rustfmt, clippy with warnings denied, tests):
    ```bash
-   cargo clippy
+   make check
    ```
 
-6. Format your code:
-   ```bash
-   cargo fmt
-   ```
+6. Optionally install the git hooks once (`make hooks`): they run the format
+   check on commit and `make check` before push.
 
 7. Commit your changes with a clear message:
    ```bash
