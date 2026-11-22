@@ -236,11 +236,8 @@ impl DependencyFilter {
         }
 
         // If no package managers detected and we have requirements, fail
-        if detected.is_empty() && (!self.required.is_empty() || !self.excluded.is_empty()) {
-            return Ok(false);
-        }
-
-        Ok(true)
+        let unconstrained = self.required.is_empty() && self.excluded.is_empty();
+        Ok(!detected.is_empty() || unconstrained)
     }
 
     /// Detect package managers in a repository.
